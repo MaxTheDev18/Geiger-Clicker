@@ -35,11 +35,12 @@
             padding: 15px;
         }
 
-        /* HEADER & CLICKER AREA */
+        /* HEADER AREA */
         header {
             text-align: center;
             background-color: var(--bg-color);
             padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
         }
 
         h1 {
@@ -117,10 +118,10 @@
         /* MAIN 3-COLUMN LAYOUT */
         .main-container {
             display: grid;
-            grid-template-columns: 380px 1fr 380px;
+            grid-template-columns: 360px 1fr 380px;
             gap: 15px;
             flex: 1;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
         @media (max-width: 1100px) {
@@ -146,11 +147,45 @@
         }
 
         .scrollable-panel {
-            max-height: 400px;
+            max-height: 420px;
             overflow-y: auto;
         }
 
-        /* BUTTONS & ITEMS */
+        /* TAB SYSTEM STYLES */
+        .tab-bar {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background-color: var(--dark-panel);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 8px 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+            text-align: center;
+        }
+
+        .tab-btn.active {
+            background-color: var(--panel-bg);
+            border-bottom: 2px solid var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* BUTTONS & INPUTS */
         button.action-btn {
             width: 100%;
             background-color: #313244;
@@ -178,6 +213,44 @@
             background-color: var(--accent-green) !important;
             color: var(--dark-panel) !important;
             font-weight: bold;
+        }
+
+        input.text-input {
+            width: 100%;
+            padding: 6px 8px;
+            background-color: var(--dark-panel);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            outline: none;
+        }
+
+        input.text-input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        /* LEADERBOARD LIST */
+        .leaderboard-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed #313244;
+            font-size: 0.8rem;
+        }
+
+        .leaderboard-row:last-child {
+            border-bottom: none;
+        }
+
+        .leaderboard-rank {
+            color: var(--accent-pink);
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .leaderboard-score {
+            color: var(--accent-green);
         }
 
         /* FACILITIES LIST */
@@ -211,7 +284,7 @@
 
         /* TERMINAL LOG */
         #terminal {
-            height: 120px;
+            height: 220px;
             background-color: var(--dark-panel);
             color: var(--accent-green);
             border: 2px inset var(--border-color);
@@ -239,13 +312,15 @@
         .btn-reset { background-color: var(--accent-red); color: var(--dark-panel); font-weight: bold; }
 
         .achievement-item {
-            font-size: 0.75rem;
-            padding: 3px 0;
+            font-size: 0.8rem;
+            padding: 6px 0;
+            border-bottom: 1px solid #313244;
             color: #6c7086;
         }
 
         .achievement-item.unlocked {
             color: var(--accent-green);
+            font-weight: bold;
         }
     </style>
 </head>
@@ -283,23 +358,41 @@
             </div>
         </div>
 
-        <!-- RIGHT COLUMN: SYSTEM TERMINAL, REBIRTH & STATS -->
+        <!-- RIGHT COLUMN: TABBED SYSTEM (LEADERBOARD, ACHIEVEMENTS, TERMINAL, STATS) -->
         <div>
-            <div class="section-title">-- System Terminal Log --</div>
-            <div id="terminal"></div>
-
-            <div class="section-title rebirth-title" style="margin-top: 15px;">-- Rebirth System --</div>
-            <div class="panel">
-                <div id="rebirth-count" style="color: var(--accent-purple); font-weight: bold; font-size: 0.85rem; margin-bottom: 6px;">
-                    Rebirths: 0 (1.0x Production)
-                </div>
-                <button class="action-btn" id="rebirth-btn" style="background-color: var(--accent-purple); color: var(--dark-panel); font-weight: bold; text-align: center;">
-                    Rebirth<br>Cost: 1,000,000,000 Lifetime LOC
-                </button>
+            <div class="section-title">-- System Hub --</div>
+            
+            <!-- TAB BUTTONS -->
+            <div class="tab-bar">
+                <button class="tab-btn active" onclick="switchTab('tab-leaderboard')">🏆 Ranks</button>
+                <button class="tab-btn" onclick="switchTab('tab-achievements')">🏅 Badges</button>
+                <button class="tab-btn" onclick="switchTab('tab-terminal')">💻 Log</button>
+                <button class="tab-btn" onclick="switchTab('tab-stats')">📊 Stats</button>
             </div>
 
-            <div class="section-title">-- Analytics & Save --</div>
-            <div class="panel">
+            <!-- TAB 1: LEADERBOARD -->
+            <div id="tab-leaderboard" class="tab-content active panel">
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <input type="text" id="player-name" class="text-input" placeholder="Enter Nickname" maxlength="12">
+                    <button class="action-btn" id="btn-submit-score" style="width: auto; padding: 5px 10px; margin-bottom: 0; white-space: nowrap;">Submit</button>
+                </div>
+                <div id="leaderboard-list" style="max-height: 200px; overflow-y: auto;">
+                    <div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">No high scores saved yet!</div>
+                </div>
+            </div>
+
+            <!-- TAB 2: ACHIEVEMENTS -->
+            <div id="tab-achievements" class="tab-content panel scrollable-panel" style="height: 250px;">
+                <!-- Dynamically loaded -->
+            </div>
+
+            <!-- TAB 3: TERMINAL LOG -->
+            <div id="tab-terminal" class="tab-content panel">
+                <div id="terminal"></div>
+            </div>
+
+            <!-- TAB 4: STATS & SAVES -->
+            <div id="tab-stats" class="tab-content panel">
                 <div id="stat-clicks" style="font-size: 0.8rem; margin-bottom: 3px;">Total Clicks: 0</div>
                 <div id="stat-earned" style="font-size: 0.8rem; margin-bottom: 3px;">Lifetime LOC: 0</div>
                 <div id="stat-split" style="font-size: 0.8rem; margin-bottom: 3px;">Manual: 0 | Passive: 0</div>
@@ -312,11 +405,20 @@
                 </div>
             </div>
 
-            <div class="section-title">-- Achievements --</div>
-            <div class="panel scrollable-panel" id="achievements-container"></div>
+            <!-- REBIRTH SYSTEM -->
+            <div class="section-title rebirth-title">-- Rebirth System --</div>
+            <div class="panel">
+                <div id="rebirth-count" style="color: var(--accent-purple); font-weight: bold; font-size: 0.85rem; margin-bottom: 6px;">
+                    Rebirths: 0 (1.0x Production)
+                </div>
+                <button class="action-btn" id="rebirth-btn" style="background-color: var(--accent-purple); color: var(--dark-panel); font-weight: bold; text-align: center;">
+                    Rebirth<br>Cost: 1,000,000,000 Lifetime LOC
+                </button>
+            </div>
         </div>
     </div>
 
+    <!-- JAVASCRIPT EXECUTED AT BOTTOM -->
     <script>
         // --- GAME STATE ---
         let state = {
@@ -419,6 +521,54 @@
             { name: "Galactic Computer", desc: "Reach 100,000,000 LOC/sec", req_type: "lps", req: 100000000, done: false }
         ];
 
+        // --- TAB SWITCHER FUNCTION ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
+        }
+
+        // --- LOCAL LEADERBOARD ---
+        function loadLocalLeaderboard() {
+            const scores = JSON.parse(localStorage.getItem("local_leaderboard") || "[]");
+            const listEl = document.getElementById("leaderboard-list");
+            listEl.innerHTML = "";
+
+            if (scores.length === 0) {
+                listEl.innerHTML = `<div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">No high scores saved yet!</div>`;
+                return;
+            }
+
+            scores.forEach((entry, idx) => {
+                const row = document.createElement("div");
+                row.className = "leaderboard-row";
+                row.innerHTML = `
+                    <span><span class="leaderboard-rank">#${idx + 1}</span><b>${entry.name}</b></span>
+                    <span class="leaderboard-score">${formatNum(entry.score)} LOC</span>
+                `;
+                listEl.appendChild(row);
+            });
+        }
+
+        document.getElementById("btn-submit-score").addEventListener("click", () => {
+            const nameInput = document.getElementById("player-name").value.trim();
+            const name = nameInput || "Anonymous";
+            const score = state.total_loc_earned;
+
+            let scores = JSON.parse(localStorage.getItem("local_leaderboard") || "[]");
+            scores.push({ name, score });
+            scores.sort((a, b) => b.score - a.score);
+            scores = scores.slice(0, 10);
+
+            localStorage.setItem("local_leaderboard", JSON.stringify(scores));
+            logTerminal(`Saved score for '${name}' (${formatNum(score)} LOC)!`);
+            loadLocalLeaderboard();
+        });
+
         // --- HELPER FUNCTIONS ---
         function formatNum(n) {
             return Math.floor(n).toLocaleString();
@@ -447,6 +597,22 @@
         function updateActiveButtonImage() {
             const activeSkin = button_upgrades[state.active_button_idx].img;
             document.getElementById("click-btn-img").src = activeSkin;
+        }
+
+        function checkAchievements() {
+            achievements.forEach(ach => {
+                if (ach.done) return;
+                let val = 0;
+                if (ach.req_type === "clicks") val = state.total_clicks;
+                else if (ach.req_type === "lps") val = state.loc_per_sec * getRebirthMultiplier();
+                else val = state.total_loc_earned;
+
+                if (val >= ach.req) {
+                    ach.done = true;
+                    logTerminal(`🏆 Achievement Unlocked: ${ach.name}!`);
+                    renderAchievements();
+                }
+            });
         }
 
         // --- CORE UI RENDERING ---
@@ -543,7 +709,7 @@
         }
 
         function renderAchievements() {
-            const container = document.getElementById("achievements-container");
+            const container = document.getElementById("tab-achievements");
             container.innerHTML = "";
             achievements.forEach(ach => {
                 const div = document.createElement("div");
@@ -557,7 +723,6 @@
             document.getElementById("score-label").textContent = `Lines of Code: ${formatNum(state.lines_of_code)}`;
             document.getElementById("stats-label").textContent = `Click Power: ${formatNum(getEffectiveClickPower())} | LOC/sec: ${formatNum(state.loc_per_sec * getRebirthMultiplier())}`;
             
-            // Stats
             document.getElementById("stat-clicks").textContent = `Total Clicks: ${formatNum(state.total_clicks)}`;
             document.getElementById("stat-earned").textContent = `Lifetime LOC: ${formatNum(state.total_loc_earned)}`;
             document.getElementById("stat-split").textContent = `Manual: ${formatNum(state.manual_loc_earned)} | Passive: ${formatNum(state.passive_loc_earned)}`;
@@ -565,7 +730,6 @@
             const elapsed = Math.floor((Date.now() - state.start_time) / 1000);
             document.getElementById("stat-time").textContent = `Session Time: ${elapsed}s`;
 
-            // Rebirth
             const rebirthCost = getRebirthCost();
             document.getElementById("rebirth-count").textContent = `Rebirths: ${state.rebirths} (${getRebirthMultiplier().toFixed(1)}x Production)`;
             document.getElementById("rebirth-btn").innerHTML = `Rebirth<br>Cost: ${formatNum(rebirthCost)} Lifetime LOC`;
@@ -593,7 +757,6 @@
                 logTerminal(`Purchased: ${item.name} (Level ${item.count})`);
                 item.cost = Math.floor(item.cost * 1.45);
 
-                // Unlock next upgrade
                 if (idx + 1 < upgrades.length) {
                     upgrades[idx + 1].unlocked = true;
                 }
@@ -609,7 +772,6 @@
             state.manual_loc_earned += earned;
             state.total_clicks++;
 
-            // Spawn floating text
             const rect = document.getElementById("click-area").getBoundingClientRect();
             const txt = document.createElement("div");
             txt.className = "floating-text";
@@ -627,7 +789,6 @@
             updateUI();
         });
 
-        // Rebirth
         document.getElementById("rebirth-btn").addEventListener("click", () => {
             const cost = getRebirthCost();
             if (state.total_loc_earned >= cost) {
@@ -652,99 +813,20 @@
             }
         });
 
-        function checkAchievements() {
-            achievements.forEach(ach => {
-                if (!ach.done) {
-                    const reqType = ach.req_type || "loc";
-                    let unlocked = false;
-
-                    if (reqType === "loc" && state.total_loc_earned >= ach.req) unlocked = true;
-                    if (reqType === "clicks" && state.total_clicks >= ach.req) unlocked = true;
-                    if (reqType === "lps" && (state.loc_per_sec * getRebirthMultiplier()) >= ach.req) unlocked = true;
-
-                    if (unlocked) {
-                        ach.done = true;
-                        logTerminal(`ACHIEVEMENT UNLOCKED: ${ach.name}!`);
-                    }
-                }
-            });
-            renderAchievements();
-        }
-
-        // --- SAVE / LOAD / RESET ---
-        function saveGame(silent = false) {
-            const saveData = {
-                state,
-                button_upgrades: button_upgrades.map(b => b.owned),
-                upgrades: upgrades.map(u => ({ count: u.count, cost: u.cost, unlocked: u.unlocked })),
-                achievements: achievements.map(a => a.done)
-            };
-            localStorage.setItem("geiger_clicker_save", JSON.stringify(saveData));
-            if (!silent) logTerminal("System state saved to LocalStorage");
-        }
-
-        function loadGame() {
-            const raw = localStorage.getItem("geiger_clicker_save");
-            if (!raw) return;
-            try {
-                const saveData = JSON.parse(raw);
-                Object.assign(state, saveData.state);
-
-                if (saveData.button_upgrades) {
-                    saveData.button_upgrades.forEach((owned, idx) => {
-                        if (button_upgrades[idx]) button_upgrades[idx].owned = owned;
-                    });
-                }
-                if (saveData.upgrades) {
-                    saveData.upgrades.forEach((u, idx) => {
-                        if (upgrades[idx]) {
-                            upgrades[idx].count = u.count;
-                            upgrades[idx].cost = u.cost;
-                            upgrades[idx].unlocked = u.unlocked;
-                        }
-                    });
-                }
-                if (saveData.achievements) {
-                    saveData.achievements.forEach((done, idx) => {
-                        if (achievements[idx]) achievements[idx].done = done;
-                    });
-                }
-                updateActiveButtonImage();
-                logTerminal("Loaded save state from LocalStorage");
-                updateUI();
-            } catch (e) {
-                logTerminal("Failed to load save file.");
-            }
-        }
-
-        function resetGame() {
-            if (confirm("Are you sure you want to reset all game progress? This action cannot be undone.")) {
-                localStorage.removeItem("geiger_clicker_save");
-                location.reload();
-            }
-        }
-
-        document.getElementById("btn-save").addEventListener("click", () => saveGame(false));
-        document.getElementById("btn-load").addEventListener("click", loadGame);
-        document.getElementById("btn-reset").addEventListener("click", resetGame);
-
-        // --- AUTO LOOPS ---
+        // --- PASSIVE INCOME LOOP ---
         setInterval(() => {
             if (state.loc_per_sec > 0) {
-                const effectiveLPS = Math.floor(state.loc_per_sec * getRebirthMultiplier());
-                state.lines_of_code += effectiveLPS;
-                state.total_loc_earned += effectiveLPS;
-                state.passive_loc_earned += effectiveLPS;
+                const passiveEarned = (state.loc_per_sec * getRebirthMultiplier()) / 10;
+                state.lines_of_code += passiveEarned;
+                state.total_loc_earned += passiveEarned;
+                state.passive_loc_earned += passiveEarned;
                 updateUI();
             }
-        }, 1000);
+        }, 100);
 
-        setInterval(() => saveGame(true), 30000);
-
-        // --- INIT ---
-        logTerminal("System initialized. Build your empire!");
-        loadGame();
-        updateActiveButtonImage();
+        // --- INITIALIZATION ---
+        loadLocalLeaderboard();
+        renderAchievements();
         updateUI();
     </script>
 </body>
