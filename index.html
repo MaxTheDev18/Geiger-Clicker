@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Geiger_Clicker_1.0</title>
+
     <style>
         :root {
             --bg-color: #1e1e2e;
@@ -115,7 +116,7 @@
             100% { opacity: 0; transform: translateY(-25px); }
         }
 
-        /* MAIN 3-COLUMN LAYOUT */
+        /* MAIN LAYOUT */
         .main-container {
             display: grid;
             grid-template-columns: 360px 1fr 380px;
@@ -186,6 +187,17 @@
         }
 
         /* BUTTONS & INPUTS */
+        input.account-input {
+            width: 100%;
+            background-color: var(--dark-panel);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px;
+            margin-bottom: 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
         button.action-btn {
             width: 100%;
             background-color: #313244;
@@ -213,21 +225,6 @@
             background-color: var(--accent-green) !important;
             color: var(--dark-panel) !important;
             font-weight: bold;
-        }
-
-        input.text-input {
-            width: 100%;
-            padding: 6px 8px;
-            background-color: var(--dark-panel);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 0.8rem;
-            outline: none;
-        }
-
-        input.text-input:focus {
-            border-color: var(--accent-blue);
         }
 
         /* LEADERBOARD LIST */
@@ -358,54 +355,75 @@
             </div>
         </div>
 
-        <!-- RIGHT COLUMN: TABBED SYSTEM -->
+        <!-- RIGHT COLUMN: TABBED SYSTEM HUB -->
         <div>
             <div class="section-title">-- System Hub --</div>
             
             <!-- TAB BUTTONS -->
             <div class="tab-bar">
-                <button class="tab-btn active" onclick="switchTab('tab-leaderboard')">🏆 Ranks</button>
-                <button class="tab-btn" onclick="switchTab('tab-achievements')">🏅 Badges</button>
-                <button class="tab-btn" onclick="switchTab('tab-terminal')">💻 Log</button>
-                <button class="tab-btn" onclick="switchTab('tab-stats')">📊 Stats</button>
+                <button class="tab-btn active" onclick="switchTab('tab-cloud', this)">☁️ Account</button>
+                <button class="tab-btn" onclick="switchTab('tab-leaderboard', this)">🏆 Ranks</button>
+                <button class="tab-btn" onclick="switchTab('tab-achievements', this)">🏅 Badges</button>
+                <button class="tab-btn" onclick="switchTab('tab-terminal', this)">💻 Log</button>
+                <button class="tab-btn" onclick="switchTab('tab-stats', this)">📊 Stats</button>
             </div>
 
-            <!-- TAB 1: GLOBAL LEADERBOARD & SIGN-IN -->
-            <div id="tab-leaderboard" class="tab-content active panel">
-                <!-- AUTH CONTAINER -->
-                <div id="auth-container" style="margin-bottom: 10px; padding: 8px; background-color: var(--dark-panel); border: 1px solid var(--border-color); border-radius: 4px;">
-                    <div id="sign-in-section" style="display: flex; gap: 5px;">
-                        <input type="text" id="player-name-input" class="text-input" placeholder="Enter Nickname to Sign In" maxlength="12">
-                        <button class="action-btn" id="btn-sign-in" style="width: auto; padding: 5px 10px; margin-bottom: 0; white-space: nowrap; background-color: var(--accent-green); color: var(--dark-panel); font-weight: bold;">Sign In</button>
+            <!-- TAB 1: INSTANT CLOUD ACCOUNT -->
+            <div id="tab-cloud" class="tab-content active panel">
+                <div id="account-logged-out">
+                    <div style="font-size: 0.8rem; color: var(--accent-cyan); margin-bottom: 8px;">
+                        <b>Cloud Account Login / Register</b><br>Save progress and sync across devices!
                     </div>
-                    <div id="signed-in-section" style="display: none; align-items: center; justify-content: space-between;">
-                        <div style="font-size: 0.85rem;">
-                            👤 <span id="current-user-display" style="color: var(--accent-blue); font-weight: bold;">-</span> 
-                            | <span id="user-rank-display" style="color: var(--accent-pink); font-weight: bold;">Rank: --</span>
-                        </div>
-                        <div style="display: flex; gap: 5px;">
-                            <button class="action-btn" id="btn-sync-score" style="width: auto; padding: 4px 8px; margin-bottom: 0; font-size: 0.75rem;">Sync</button>
-                            <button class="action-btn" id="btn-sign-out" style="width: auto; padding: 4px 8px; margin-bottom: 0; font-size: 0.75rem; background-color: var(--accent-red); color: var(--dark-panel);">Sign Out</button>
-                        </div>
+                    <input type="text" id="acc-username" class="account-input" placeholder="Username" maxlength="16">
+                    <input type="password" id="acc-pin" class="account-input" placeholder="4-Digit PIN / Password" maxlength="8">
+                    <button class="action-btn" id="btn-cloud-login" style="background-color: var(--accent-blue); color: var(--dark-panel); font-weight: bold; text-align: center;">
+                        🔑 Log In / Create Account
+                    </button>
+                </div>
+
+                <div id="account-logged-in" style="display: none;">
+                    <div style="font-size: 0.85rem; margin-bottom: 8px;">
+                        Logged in as: <b id="user-display-name" style="color: var(--accent-green);">--</b>
                     </div>
+                    <div style="font-size: 0.75rem; color: #a6adc8; margin-bottom: 10px;" id="cloud-sync-status">
+                        Status: Connected
+                    </div>
+                    
+                    <button class="action-btn btn-save" id="btn-cloud-save" style="text-align: center; margin-bottom: 6px;">
+                        ☁️ Save Progress to Cloud
+                    </button>
+                    <button class="action-btn btn-load" id="btn-cloud-load" style="text-align: center; margin-bottom: 6px;">
+                        ☁️ Load Progress from Cloud
+                    </button>
+                    <button class="action-btn" id="btn-cloud-logout" style="background-color: var(--accent-red); color: var(--dark-panel); font-weight: bold; text-align: center;">
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 2: GLOBAL LEADERBOARD -->
+            <div id="tab-leaderboard" class="tab-content panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; color: var(--accent-pink);">Your Rank: <b id="user-rank-display">--</b></span>
+                    <button class="action-btn" id="btn-refresh-lb" style="width: auto; padding: 3px 8px; margin-bottom: 0; font-size: 0.7rem;">🔄 Refresh</button>
                 </div>
 
                 <div id="leaderboard-list" style="max-height: 200px; overflow-y: auto;">
-                    <div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">Loading global ranks...</div>
+                    <div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">Loading ranks...</div>
                 </div>
             </div>
 
-            <!-- TAB 2: ACHIEVEMENTS -->
+            <!-- TAB 3: ACHIEVEMENTS -->
             <div id="tab-achievements" class="tab-content panel scrollable-panel" style="height: 250px;">
                 <!-- Dynamically loaded -->
             </div>
 
-            <!-- TAB 3: TERMINAL LOG -->
+            <!-- TAB 4: TERMINAL LOG -->
             <div id="tab-terminal" class="tab-content panel">
                 <div id="terminal"></div>
             </div>
 
-            <!-- TAB 4: STATS & SAVES -->
+            <!-- TAB 5: LOCAL STATS & SAVES -->
             <div id="tab-stats" class="tab-content panel">
                 <div id="stat-clicks" style="font-size: 0.8rem; margin-bottom: 3px;">Total Clicks: 0</div>
                 <div id="stat-earned" style="font-size: 0.8rem; margin-bottom: 3px;">Lifetime LOC: 0</div>
@@ -413,8 +431,8 @@
                 <div id="stat-time" style="font-size: 0.8rem; margin-bottom: 8px;">Session Time: 0s</div>
                 
                 <div class="action-grid">
-                    <button class="action-btn btn-save" id="btn-save" style="text-align: center;">💾 Save</button>
-                    <button class="action-btn btn-load" id="btn-load" style="text-align: center;">📂 Load</button>
+                    <button class="action-btn btn-save" id="btn-save" style="text-align: center;">💾 Local Save</button>
+                    <button class="action-btn btn-load" id="btn-load" style="text-align: center;">📂 Local Load</button>
                     <button class="action-btn btn-reset" id="btn-reset" style="text-align: center;">⚠️ Reset</button>
                 </div>
             </div>
@@ -433,13 +451,14 @@
     </div>
 
     <script>
-        // --- GLOBAL LEADERBOARD KEYS ---
-        const PUBLIC_KEY = "6aa2b76c8f40bb15a86e2999";
-        const PRIVATE_KEY = "gbqDR69yDEuPvwbCTdYE6QNQmSIFAK60mv23tKMLJwjw";
+        // --- API KEYS ---
+        const DREAMLO_PUBLIC = "6aa2b76c8f40bb15a86e2999";
+        const DREAMLO_PRIVATE = "gbqDR69yDEuPvwbCTdYE6QNQmSIFAK60mv23tKMLJwjw";
 
         // --- GAME STATE ---
         let state = {
             username: "",
+            user_pin: "",
             lines_of_code: 0,
             click_power: 1,
             loc_per_sec: 0,
@@ -539,116 +558,244 @@
             { name: "Galactic Computer", desc: "Reach 100,000,000 LOC/sec", req_type: "lps", req: 100000000, done: false }
         ];
 
+        // --- GITHUB PAGES / CORS HELPER FUNCTIONS ---
+        // Reads data from Dreamlo using CORS proxies to bypass GitHub Pages CORS restrictions
+        async function readFromDreamlo(path) {
+            const targetUrl = `https://www.dreamlo.com/lb/${DREAMLO_PUBLIC}/${path}`;
+            const encoded = encodeURIComponent(targetUrl);
+            
+            const proxies = [
+                `https://corsproxy.io/?${encoded}`,
+                `https://api.allorigins.win/raw?url=${encoded}`,
+                targetUrl
+            ];
+
+            for (const url of proxies) {
+                try {
+                    const res = await fetch(url);
+                    if (res.ok) {
+                        return await res.json();
+                    }
+                } catch (e) {
+                    // Try next proxy in fallback array
+                }
+            }
+            throw new Error("Unable to fetch data from Dreamlo through CORS proxies.");
+        }
+
+        // Writes data to Dreamlo using 'no-cors' mode (bypasses browser CORS policy on GitHub Pages)
+        async function sendToDreamlo(path) {
+            const targetUrl = `https://www.dreamlo.com/lb/${DREAMLO_PRIVATE}/${path}`;
+            try {
+                await fetch(targetUrl, { mode: 'no-cors' });
+                return true;
+            } catch (e) {
+                try {
+                    await fetch(`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`);
+                    return true;
+                } catch (err) {
+                    return false;
+                }
+            }
+        }
+
         // --- TAB SWITCHER FUNCTION ---
-        function switchTab(tabId) {
+        function switchTab(tabId, btn) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             
             document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
+            if (btn) btn.classList.add('active');
         }
 
-        // --- AUTHENTICATION & SIGN IN ---
-        function updateAuthUI() {
-            const signInSec = document.getElementById("sign-in-section");
-            const signedInSec = document.getElementById("signed-in-section");
-            const userDisplay = document.getElementById("current-user-display");
+        // --- INSTANT CLOUD ACCOUNT SYSTEM ---
+        function handleLogin() {
+            const userInp = document.getElementById("acc-username").value.trim().replace(/[^a-zA-Z0-9_]/g, '');
+            const pinInp = document.getElementById("acc-pin").value.trim();
 
-            if (state.username && state.username.trim() !== "") {
-                signInSec.style.display = "none";
-                signedInSec.style.display = "flex";
-                userDisplay.textContent = state.username;
-            } else {
-                signInSec.style.display = "flex";
-                signedInSec.style.display = "none";
-            }
-        }
-
-        function handleSignIn() {
-            const nameInput = document.getElementById("player-name-input").value.trim();
-            if (!nameInput) {
-                alert("Please enter a nickname.");
+            if (!userInp || userInp.length < 3) {
+                alert("Username must be at least 3 alphanumeric characters.");
                 return;
             }
-            if (nameInput.includes("*")) {
-                alert("Username cannot contain an asterisk (*).");
+            if (!pinInp || pinInp.length < 4) {
+                alert("PIN must be at least 4 digits.");
                 return;
             }
-            state.username = nameInput;
-            saveGame(true);
-            updateAuthUI();
-            logTerminal(`Signed in as '${state.username}'`);
-            submitScoreAndRefresh(false);
+
+            state.username = userInp;
+            state.user_pin = pinInp;
+
+            logTerminal(`Logging in as '${state.username}'...`);
+            updateAccountUI();
+            
+            cloudLoadGame(true);
+            submitScoreAndRefresh(true);
         }
 
-        function handleSignOut() {
-            logTerminal(`Signed out from '${state.username}'`);
+        function handleLogout() {
+            logTerminal(`Logged out of account '${state.username}'.`);
             state.username = "";
-            document.getElementById("user-rank-display").textContent = "Rank: --";
+            state.user_pin = "";
+            updateAccountUI();
             saveGame(true);
-            updateAuthUI();
-            loadGlobalLeaderboard();
         }
 
-        document.getElementById("btn-sign-in").addEventListener("click", handleSignIn);
-        document.getElementById("btn-sign-out").addEventListener("click", handleSignOut);
-        document.getElementById("btn-sync-score").addEventListener("click", () => submitScoreAndRefresh(false));
+        function updateAccountUI() {
+            const loggedOutDiv = document.getElementById("account-logged-out");
+            const loggedInDiv = document.getElementById("account-logged-in");
+            const userDisp = document.getElementById("user-display-name");
 
-        // --- GLOBAL CROSS-DESKTOP LEADERBOARD (DREAMLO) ---
+            if (state.username) {
+                loggedOutDiv.style.display = "none";
+                loggedInDiv.style.display = "block";
+                userDisp.textContent = state.username;
+            } else {
+                loggedOutDiv.style.display = "block";
+                loggedInDiv.style.display = "none";
+            }
+        }
+
+        function cloudSaveGame(silent = false) {
+            if (!state.username || !state.user_pin) return;
+
+            const syncStatus = document.getElementById("cloud-sync-status");
+            if (syncStatus) syncStatus.textContent = "Status: Syncing to cloud...";
+
+            const payload = {
+                state,
+                button_upgrades: button_upgrades.map(b => b.owned),
+                upgrades: upgrades.map(u => ({ count: u.count, cost: u.cost, unlocked: u.unlocked })),
+                achievements: achievements.map(a => a.done),
+                last_updated: Date.now()
+            };
+
+            const dataStr = btoa(JSON.stringify(payload));
+            const path = `add-pipe/${encodeURIComponent(state.username)}/${state.total_loc_earned}/0/${encodeURIComponent(dataStr)}`;
+
+            sendToDreamlo(path)
+                .then(() => {
+                    if (syncStatus) syncStatus.textContent = `Status: Cloud Synced (${new Date().toLocaleTimeString()})`;
+                    if (!silent) logTerminal("☁️ Saved game to Cloud!");
+                    saveGame(true);
+                })
+                .catch(() => {
+                    if (syncStatus) syncStatus.textContent = "Status: Cloud Sync Failed";
+                    if (!silent) logTerminal("❌ Cloud save failed. Saved locally.");
+                    saveGame(true);
+                });
+        }
+
+        function cloudLoadGame(silent = false) {
+            if (!state.username || !state.user_pin) return;
+
+            readFromDreamlo("json")
+                .then(data => {
+                    if (!data || !data.dreamlo || !data.dreamlo.leaderboard) return;
+                    let entries = data.dreamlo.leaderboard.entry;
+                    if (!entries) return;
+                    if (!Array.isArray(entries)) entries = [entries];
+
+                    const match = entries.find(e => e.name && e.name.toLowerCase() === state.username.toLowerCase());
+                    if (match && match.text) {
+                        try {
+                            const decoded = JSON.parse(atob(match.text));
+                            Object.assign(state, decoded.state);
+
+                            if (decoded.button_upgrades) {
+                                decoded.button_upgrades.forEach((owned, idx) => {
+                                    if (button_upgrades[idx]) button_upgrades[idx].owned = owned;
+                                });
+                            }
+                            if (decoded.upgrades) {
+                                decoded.upgrades.forEach((u, idx) => {
+                                    if (upgrades[idx]) {
+                                        upgrades[idx].count = u.count;
+                                        upgrades[idx].cost = u.cost;
+                                        upgrades[idx].unlocked = u.unlocked;
+                                    }
+                                });
+                            }
+                            if (decoded.achievements) {
+                                decoded.achievements.forEach((done, idx) => {
+                                    if (achievements[idx]) achievements[idx].done = done;
+                                });
+                            }
+
+                            updateActiveButtonImage();
+                            updateUI();
+                            if (!silent) logTerminal(`☁️ Loaded save file for '${state.username}' from Cloud!`);
+                        } catch (e) {
+                            if (!silent) logTerminal("No previous cloud save found. Created new cloud profile!");
+                        }
+                    } else {
+                        if (!silent) logTerminal("New account initialized! Saving to cloud...");
+                        cloudSaveGame(true);
+                    }
+                })
+                .catch(() => {
+                    if (!silent) logTerminal("Failed to reach cloud servers.");
+                });
+        }
+
+        document.getElementById("btn-cloud-login").addEventListener("click", handleLogin);
+        document.getElementById("btn-cloud-logout").addEventListener("click", handleLogout);
+        document.getElementById("btn-cloud-save").addEventListener("click", () => cloudSaveGame(false));
+        document.getElementById("btn-cloud-load").addEventListener("click", () => cloudLoadGame(false));
+
+        // --- GLOBAL LEADERBOARD ---
         function submitScoreAndRefresh(silent = false) {
-            if (!state.username || state.username.trim() === "") {
+            if (!state.username) {
                 loadGlobalLeaderboard();
                 return;
             }
             const name = state.username;
             const score = state.total_loc_earned;
 
-            fetch(`https://www.dreamlo.com/lb/${PRIVATE_KEY}/add/${encodeURIComponent(name)}/${score}`)
+            sendToDreamlo(`add/${encodeURIComponent(name)}/${score}`)
                 .then(() => {
-                    if (!silent) logTerminal(`Synced score for '${name}' (${formatNum(score)} LOC)!`);
+                    if (!silent) logTerminal(`Synced rank for '${name}' (${formatNum(score)} LOC)!`);
                     loadGlobalLeaderboard();
                 })
-                .catch(() => {
-                    if (!silent) logTerminal("Failed to submit score to server.");
-                    loadGlobalLeaderboard();
-                });
+                .catch(() => loadGlobalLeaderboard());
         }
 
         function loadGlobalLeaderboard() {
             const listEl = document.getElementById("leaderboard-list");
             const rankDisplay = document.getElementById("user-rank-display");
 
-            fetch(`https://www.dreamlo.com/lb/${PUBLIC_KEY}/json`)
-                .then(res => res.json())
+            readFromDreamlo("json")
                 .then(data => {
                     listEl.innerHTML = "";
-                    if (!data.dreamlo || !data.dreamlo.leaderboard) {
+                    if (!data || !data.dreamlo || !data.dreamlo.leaderboard) {
                         listEl.innerHTML = `<div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">No high scores saved yet!</div>`;
-                        if (rankDisplay) rankDisplay.textContent = "Rank: Unranked";
+                        if (rankDisplay) rankDisplay.textContent = "Unranked";
                         return;
                     }
 
                     let entries = data.dreamlo.leaderboard.entry;
+                    if (!entries) {
+                        listEl.innerHTML = `<div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">No high scores saved yet!</div>`;
+                        if (rankDisplay) rankDisplay.textContent = "Unranked";
+                        return;
+                    }
+
                     if (!Array.isArray(entries)) entries = [entries];
 
-                    // Find player position
                     let userRank = "Unranked";
                     if (state.username) {
-                        const foundIdx = entries.findIndex(e => e.name.toLowerCase() === state.username.toLowerCase());
-                        if (foundIdx !== -1) {
-                            userRank = `#${foundIdx + 1}`;
-                        }
+                        const foundIdx = entries.findIndex(e => e.name && e.name.toLowerCase() === state.username.toLowerCase());
+                        if (foundIdx !== -1) userRank = `#${foundIdx + 1}`;
                     }
-                    if (rankDisplay) rankDisplay.textContent = `Rank: ${userRank}`;
+                    if (rankDisplay) rankDisplay.textContent = userRank;
 
                     entries.slice(0, 10).forEach((entry, idx) => {
                         const row = document.createElement("div");
                         row.className = "leaderboard-row";
-                        const isCurrentUser = state.username && (entry.name.toLowerCase() === state.username.toLowerCase());
+                        const isCurrentUser = state.username && (entry.name && entry.name.toLowerCase() === state.username.toLowerCase());
                         const nameStyle = isCurrentUser ? "color: var(--accent-cyan); font-weight: bold;" : "";
                         row.innerHTML = `
-                            <span><span class="leaderboard-rank">#${idx + 1}</span><b style="${nameStyle}">${entry.name}</b>${isCurrentUser ? ' (You)' : ''}</span>
-                            <span class="leaderboard-score">${formatNum(parseInt(entry.score))} LOC</span>
+                            <span><span class="leaderboard-rank">#${idx + 1}</span><b style="${nameStyle}">${entry.name || 'Anonymous'}</b>${isCurrentUser ? ' (You)' : ''}</span>
+                            <span class="leaderboard-score">${formatNum(parseInt(entry.score || 0))} LOC</span>
                         `;
                         listEl.appendChild(row);
                     });
@@ -657,6 +804,8 @@
                     listEl.innerHTML = `<div style="color: #f38ba8; text-align: center; padding: 10px 0;">Failed to fetch global ranks.</div>`;
                 });
         }
+
+        document.getElementById("btn-refresh-lb").addEventListener("click", loadGlobalLeaderboard);
 
         // --- HELPER FUNCTIONS ---
         function formatNum(n) {
@@ -715,7 +864,7 @@
                             skin.owned = true;
                             state.active_button_idx = idx;
                             updateActiveButtonImage();
-                            logTerminal(`Purchased new Button Skin: ${skin.name}`);
+                            logTerminal(`Purchased Button Skin: ${skin.name}`);
                             updateUI();
                         }
                     };
@@ -814,7 +963,7 @@
             renderFacilities();
         }
 
-        // --- ACTIONS ---
+        // --- GAMEPLAY ACTIONS ---
         function buyUpgrade(idx) {
             const item = upgrades[idx];
             if (state.lines_of_code >= item.cost) {
@@ -882,6 +1031,7 @@
                     updateActiveButtonImage();
                     logTerminal(`💥 REBIRTH PERFORMED! Multiplier upgraded to ${getRebirthMultiplier().toFixed(1)}x!`);
                     updateUI();
+                    cloudSaveGame(true);
                 }
             }
         });
@@ -905,7 +1055,7 @@
             renderAchievements();
         }
 
-        // --- SAVE / LOAD / RESET ---
+        // --- LOCAL SAVE / LOAD / RESET ---
         function saveGame(silent = false) {
             const saveData = {
                 state,
@@ -914,7 +1064,7 @@
                 achievements: achievements.map(a => a.done)
             };
             localStorage.setItem("geiger_clicker_save", JSON.stringify(saveData));
-            if (!silent) logTerminal("System state saved to LocalStorage");
+            if (!silent) logTerminal("Local save state saved to browser.");
         }
 
         function loadGame() {
@@ -944,10 +1094,11 @@
                     });
                 }
                 updateActiveButtonImage();
-                logTerminal("Loaded save state from LocalStorage");
+                logTerminal("Loaded local save file.");
+                updateAccountUI();
                 updateUI();
             } catch (e) {
-                logTerminal("Failed to load save file.");
+                logTerminal("Failed to load local save file.");
             }
         }
 
@@ -963,7 +1114,7 @@
         document.getElementById("btn-reset").addEventListener("click", resetGame);
 
         // --- AUTO LOOPS ---
-        // Passive LOC income loop
+        // Passive LOC loop
         setInterval(() => {
             if (state.loc_per_sec > 0) {
                 const effectiveLPS = Math.floor(state.loc_per_sec * getRebirthMultiplier());
@@ -974,21 +1125,25 @@
             }
         }, 1000);
 
-        // Auto Save every 30 seconds
-        setInterval(() => saveGame(true), 30000);
+        // Auto Save to LocalStorage every 15 seconds
+        setInterval(() => saveGame(true), 15000);
 
-        // Auto Sync score & Update Global Leaderboard every 30 seconds
+        // Auto Sync score & Cloud Save every 30 seconds
         setInterval(() => {
-            submitScoreAndRefresh(true);
+            if (state.username && state.user_pin) {
+                cloudSaveGame(true);
+                submitScoreAndRefresh(true);
+            }
         }, 30000);
 
         // --- INIT ---
-        logTerminal("System initialized. Build your empire!");
-        loadGame();
-        updateAuthUI();
-        loadGlobalLeaderboard();
-        updateActiveButtonImage();
-        updateUI();
+        window.onload = function() {
+            logTerminal("System initialized. Welcome to Geiger Clicker!");
+            loadGame();
+            loadGlobalLeaderboard();
+            updateActiveButtonImage();
+            updateUI();
+        };
     </script>
 </body>
 </html>
