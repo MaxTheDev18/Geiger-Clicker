@@ -559,39 +559,70 @@
             { name: "Galactic Computer", desc: "Reach 100,000,000 LOC/sec", req_type: "lps", req: 100000000, done: false }
         ];
 
-        // --- GITHUB PAGES MULTI-PROXY PIPELINE ---
+        // --- HELPER FUNCTIONS ---
+        function escapeHTML(str) {
+            return String(str).replace(/[&<>"']/g, match => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[match]));
+        }
+
+        function formatNum(n) {
+            return Math.floor(n).toLocaleString();
+        }
+
+        function logTerminal(msg) {
+            const term = document.getElementById("terminal");
+            if (!term) return;
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+            term.innerHTML += `[${time}] ${msg}\n`;
+            term.scrollTop = term.scrollHeight;
+        }
+
+        // --- ROBUST PROXY PIPELINE ---
         async function fetchViaProxies(httpUrl) {
             const encoded = encodeURIComponent(httpUrl);
-            const proxyList = [
-                `https://api.allorigins.win/raw?url=${encoded}`,
-                `https://api.codetabs.com/v1/proxy?quest=${encoded}`,
-                `https://corsproxy.io/?${encoded}`
+            const proxyStrategies = [
+                {
+                    // AllOrigins JSON wrapper (handles HTTP safely)
+                    url: `https://api.allorigins.win/get?url=${encoded}`,
+                    unwrap: async (res) => {
+                        const data = await res.json();
+                        return JSON.parse(data.contents);
+                    }
+                },
+                {
+                    // CORS.lol Proxy
+                    url: `https://api.cors.lol/?url=${encoded}`,
+                    unwrap: async (res) => await res.json()
+                },
+                {
+                    // CodeTabs Proxy
+                    url: `https://api.codetabs.com/v1/proxy?quest=${encoded}`,
+                    unwrap: async (res) => await res.json()
+                }
             ];
 
-            let lastError = null;
-            for (const proxyUrl of proxyList) {
+            for (const strategy of proxyStrategies) {
                 try {
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-                    const response = await fetch(proxyUrl, { signal: controller.signal });
+                    const response = await fetch(strategy.url, { signal: controller.signal });
                     clearTimeout(timeoutId);
 
                     if (response.ok) {
-                        const text = await response.text();
-                        if (text && text.trim().length > 0) {
-                            try {
-                                return JSON.parse(text);
-                            } catch (e) {
-                                return text;
-                            }
-                        }
+                        const data = await strategy.unwrap(response);
+                        if (data) return data;
                     }
                 } catch (err) {
-                    lastError = err;
+                    console.warn(`Proxy strategy failed (${strategy.url}):`, err.message);
                 }
             }
-            throw new Error(lastError ? lastError.message : "All proxies failed");
+            throw new Error("All CORS proxies failed to reach the server.");
         }
 
         async function readFromDreamlo(path) {
@@ -784,63 +815,57 @@
                 .catch(() => loadGlobalLeaderboard());
         }
 
-        function loadGlobalLeaderboard() {
+        async function loadGlobalLeaderboard() {
             const listEl = document.getElementById("leaderboard-list");
             const rankDisplay = document.getElementById("user-rank-display");
+            if (!listEl) return;
 
-            readFromDreamlo("json")
-                .then(data => {
-                    listEl.innerHTML = "";
-                    
-                    const leaderboard = data && data.dreamlo ? data.dreamlo.leaderboard : null;
-                    if (!leaderboard || !leaderboard.entry) {
-                        listEl.innerHTML = `<div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">No high scores saved yet! Be the first!</div>`;
-                        if (rankDisplay) rankDisplay.textContent = "Unranked";
-                        return;
-                    }
+            listEl.innerHTML = `<div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">Loading ranks...</div>`;
 
-                    let entries = leaderboard.entry;
-                    if (!Array.isArray(entries)) entries = [entries];
+            try {
+                const data = await readFromDreamlo("json");
+                
+                const leaderboard = data && data.dreamlo ? data.dreamlo.leaderboard : null;
+                if (!leaderboard || !leaderboard.entry) {
+                    listEl.innerHTML = `<div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">No high scores saved yet! Be the first!</div>`;
+                    if (rankDisplay) rankDisplay.textContent = "Unranked";
+                    return;
+                }
 
-                    let userRank = "Unranked";
-                    if (state.username) {
-                        const foundIdx = entries.findIndex(e => e.name && e.name.toLowerCase() === state.username.toLowerCase());
-                        if (foundIdx !== -1) userRank = `#${foundIdx + 1}`;
-                    }
-                    if (rankDisplay) rankDisplay.textContent = userRank;
+                let entries = leaderboard.entry;
+                if (!Array.isArray(entries)) entries = [entries];
 
-                    entries.slice(0, 10).forEach((entry, idx) => {
-                        const row = document.createElement("div");
-                        row.className = "leaderboard-row";
-                        const isCurrentUser = state.username && (entry.name && entry.name.toLowerCase() === state.username.toLowerCase());
-                        const nameStyle = isCurrentUser ? "color: var(--accent-cyan); font-weight: bold;" : "";
-                        row.innerHTML = `
-                            <span><span class="leaderboard-rank">#${idx + 1}</span><b style="${nameStyle}">${entry.name || 'Anonymous'}</b>${isCurrentUser ? ' (You)' : ''}</span>
-                            <span class="leaderboard-score">${formatNum(parseInt(entry.score || 0))} LOC</span>
-                        `;
-                        listEl.appendChild(row);
-                    });
-                })
-                .catch(err => {
-                    console.error("Leaderboard Error:", err);
-                    listEl.innerHTML = `<div style="color: #f38ba8; text-align: center; padding: 10px 0;">Failed to fetch global ranks.</div>`;
+                let userRank = "Unranked";
+                if (state.username) {
+                    const foundIdx = entries.findIndex(e => e.name && e.name.toLowerCase() === state.username.toLowerCase());
+                    if (foundIdx !== -1) userRank = `#${foundIdx + 1}`;
+                }
+                if (rankDisplay) rankDisplay.textContent = userRank;
+
+                listEl.innerHTML = "";
+                entries.slice(0, 10).forEach((entry, idx) => {
+                    const row = document.createElement("div");
+                    row.className = "leaderboard-row";
+                    const isCurrentUser = state.username && (entry.name && entry.name.toLowerCase() === state.username.toLowerCase());
+                    const nameStyle = isCurrentUser ? "color: var(--accent-cyan); font-weight: bold;" : "";
+                    const safeName = escapeHTML(entry.name || 'Anonymous');
+                    const safeScore = formatNum(parseInt(entry.score || 0));
+
+                    row.innerHTML = `
+                        <span><span class="leaderboard-rank">#${idx + 1}</span><b style="${nameStyle}">${safeName}</b>${isCurrentUser ? ' (You)' : ''}</span>
+                        <span class="leaderboard-score">${safeScore} LOC</span>
+                    `;
+                    listEl.appendChild(row);
                 });
+            } catch (err) {
+                console.error("Leaderboard Error:", err);
+                listEl.innerHTML = `<div style="color: #f38ba8; text-align: center; padding: 10px 0;">Failed to fetch global ranks.</div>`;
+            }
         }
 
         document.getElementById("btn-refresh-lb").addEventListener("click", loadGlobalLeaderboard);
 
-        // --- HELPER FUNCTIONS ---
-        function formatNum(n) {
-            return Math.floor(n).toLocaleString();
-        }
-
-        function logTerminal(msg) {
-            const term = document.getElementById("terminal");
-            const time = new Date().toLocaleTimeString('en-US', { hour12: false });
-            term.innerHTML += `[${time}] ${msg}\n`;
-            term.scrollTop = term.scrollHeight;
-        }
-
+        // --- GAME LOGIC ---
         function getRebirthMultiplier() {
             return 1.0 + (state.rebirths * 1.5);
         }
