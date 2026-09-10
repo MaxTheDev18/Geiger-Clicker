@@ -584,12 +584,10 @@
 
         // --- ADVANCED PROXY PIPELINE WITH CACHE-BUSTING ---
         async function fetchViaProxies(httpUrl) {
-            // Append timestamp parameter to force non-cached fetch from Dreamlo & proxy servers
             const cbParam = (httpUrl.includes('?') ? '&' : '?') + `_cb=${Date.now()}`;
             const cacheBustedUrl = httpUrl + cbParam;
             const encoded = encodeURIComponent(cacheBustedUrl);
             
-            // Direct fetch attempt if site is served over HTTP
             if (window.location.protocol === "http:") {
                 try {
                     const directRes = await fetch(cacheBustedUrl, { cache: "no-store" });
@@ -601,7 +599,6 @@
 
             const proxyStrategies = [
                 {
-                    // Strategy 1: AllOrigins JSON API wrapper
                     url: `https://api.allorigins.win/get?url=${encoded}&_ts=${Date.now()}`,
                     unwrap: async (res) => {
                         const data = await res.json();
@@ -609,12 +606,10 @@
                     }
                 },
                 {
-                    // Strategy 2: CodeTabs Proxy
                     url: `https://api.codetabs.com/v1/proxy?quest=${encoded}&_ts=${Date.now()}`,
                     unwrap: async (res) => await res.json()
                 },
                 {
-                    // Strategy 3: CORS.lol Proxy
                     url: `https://api.cors.lol/?url=${encoded}&_ts=${Date.now()}`,
                     unwrap: async (res) => await res.json()
                 }
@@ -632,7 +627,7 @@
             for (const strategy of proxyStrategies) {
                 try {
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+                    const timeoutId = setTimeout(() => controller.abort(), 5000);
 
                     const response = await fetch(strategy.url, { 
                         ...fetchOptions, 
@@ -697,7 +692,6 @@
             updateAccountUI();
             
             cloudLoadGame(true);
-            submitScoreAndRefresh(true);
         }
 
         function handleLogout() {
@@ -723,6 +717,7 @@
             }
         }
 
+        // --- CLOUD SAVE (Pushes state AND score to leaderboard) ---
         function cloudSaveGame(silent = false) {
             if (!state.username || !state.user_pin) return;
 
@@ -747,8 +742,9 @@
             sendToDreamlo(path)
                 .then(() => {
                     if (syncStatus) syncStatus.textContent = `Status: Cloud Synced (${new Date().toLocaleTimeString()})`;
-                    if (!silent) logTerminal("☁️ Saved game to Cloud!");
+                    if (!silent) logTerminal("☁️ Saved game and updated score to Cloud!");
                     saveGame(true);
+                    loadGlobalLeaderboard();
                 })
                 .catch(() => {
                     if (syncStatus) syncStatus.textContent = "Status: Cloud Sync Failed";
@@ -757,6 +753,7 @@
                 });
         }
 
+        // --- CLOUD LOAD (Restores save AND submits loaded score) ---
         function cloudLoadGame(silent = false) {
             if (!state.username || !state.user_pin) return;
 
@@ -804,6 +801,9 @@
                             updateActiveButtonImage();
                             updateUI();
                             if (!silent) logTerminal(`☁️ Loaded save file for '${state.username}' from Cloud!`);
+
+                            // Force immediate score submission so leaderboard refresh shows updated total
+                            submitScoreAndRefresh(true);
                         } catch (e) {
                             if (!silent) logTerminal("Cloud profile formatted. Created new cloud save!");
                             cloudSaveGame(true);
@@ -1205,7 +1205,6 @@
         setInterval(() => {
             if (state.username && state.user_pin) {
                 cloudSaveGame(true);
-                submitScoreAndRefresh(true);
             }
         }, 30000);
 
