@@ -358,7 +358,7 @@
             </div>
         </div>
 
-        <!-- RIGHT COLUMN: TABBED SYSTEM (LEADERBOARD, ACHIEVEMENTS, TERMINAL, STATS) -->
+        <!-- RIGHT COLUMN: TABBED SYSTEM -->
         <div>
             <div class="section-title">-- System Hub --</div>
             
@@ -370,14 +370,28 @@
                 <button class="tab-btn" onclick="switchTab('tab-stats')">📊 Stats</button>
             </div>
 
-            <!-- TAB 1: LEADERBOARD -->
+            <!-- TAB 1: GLOBAL LEADERBOARD & SIGN-IN -->
             <div id="tab-leaderboard" class="tab-content active panel">
-                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                    <input type="text" id="player-name" class="text-input" placeholder="Enter Nickname" maxlength="12">
-                    <button class="action-btn" id="btn-submit-score" style="width: auto; padding: 5px 10px; margin-bottom: 0; white-space: nowrap;">Submit</button>
+                <!-- AUTH CONTAINER -->
+                <div id="auth-container" style="margin-bottom: 10px; padding: 8px; background-color: var(--dark-panel); border: 1px solid var(--border-color); border-radius: 4px;">
+                    <div id="sign-in-section" style="display: flex; gap: 5px;">
+                        <input type="text" id="player-name-input" class="text-input" placeholder="Enter Nickname to Sign In" maxlength="12">
+                        <button class="action-btn" id="btn-sign-in" style="width: auto; padding: 5px 10px; margin-bottom: 0; white-space: nowrap; background-color: var(--accent-green); color: var(--dark-panel); font-weight: bold;">Sign In</button>
+                    </div>
+                    <div id="signed-in-section" style="display: none; align-items: center; justify-content: space-between;">
+                        <div style="font-size: 0.85rem;">
+                            👤 <span id="current-user-display" style="color: var(--accent-blue); font-weight: bold;">-</span> 
+                            | <span id="user-rank-display" style="color: var(--accent-pink); font-weight: bold;">Rank: --</span>
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="action-btn" id="btn-sync-score" style="width: auto; padding: 4px 8px; margin-bottom: 0; font-size: 0.75rem;">Sync</button>
+                            <button class="action-btn" id="btn-sign-out" style="width: auto; padding: 4px 8px; margin-bottom: 0; font-size: 0.75rem; background-color: var(--accent-red); color: var(--dark-panel);">Sign Out</button>
+                        </div>
+                    </div>
                 </div>
+
                 <div id="leaderboard-list" style="max-height: 200px; overflow-y: auto;">
-                    <div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">No high scores saved yet!</div>
+                    <div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">Loading global ranks...</div>
                 </div>
             </div>
 
@@ -418,10 +432,14 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT EXECUTED AT BOTTOM -->
     <script>
+        // --- GLOBAL LEADERBOARD KEYS ---
+        const PUBLIC_KEY = "6aa2b76c8f40bb15a86e2999";
+        const PRIVATE_KEY = "gbqDR69yDEuPvwbCTdYE6QNQmSIFAK60mv23tKMLJwjw";
+
         // --- GAME STATE ---
         let state = {
+            username: "",
             lines_of_code: 0,
             click_power: 1,
             loc_per_sec: 0,
@@ -527,47 +545,118 @@
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             
             document.getElementById(tabId).classList.add('active');
-            if (event && event.currentTarget) {
-                event.currentTarget.classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // --- AUTHENTICATION & SIGN IN ---
+        function updateAuthUI() {
+            const signInSec = document.getElementById("sign-in-section");
+            const signedInSec = document.getElementById("signed-in-section");
+            const userDisplay = document.getElementById("current-user-display");
+
+            if (state.username && state.username.trim() !== "") {
+                signInSec.style.display = "none";
+                signedInSec.style.display = "flex";
+                userDisplay.textContent = state.username;
+            } else {
+                signInSec.style.display = "flex";
+                signedInSec.style.display = "none";
             }
         }
 
-        // --- LOCAL LEADERBOARD ---
-        function loadLocalLeaderboard() {
-            const scores = JSON.parse(localStorage.getItem("local_leaderboard") || "[]");
-            const listEl = document.getElementById("leaderboard-list");
-            listEl.innerHTML = "";
-
-            if (scores.length === 0) {
-                listEl.innerHTML = `<div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">No high scores saved yet!</div>`;
+        function handleSignIn() {
+            const nameInput = document.getElementById("player-name-input").value.trim();
+            if (!nameInput) {
+                alert("Please enter a nickname.");
                 return;
             }
-
-            scores.forEach((entry, idx) => {
-                const row = document.createElement("div");
-                row.className = "leaderboard-row";
-                row.innerHTML = `
-                    <span><span class="leaderboard-rank">#${idx + 1}</span><b>${entry.name}</b></span>
-                    <span class="leaderboard-score">${formatNum(entry.score)} LOC</span>
-                `;
-                listEl.appendChild(row);
-            });
+            if (nameInput.includes("*")) {
+                alert("Username cannot contain an asterisk (*).");
+                return;
+            }
+            state.username = nameInput;
+            saveGame(true);
+            updateAuthUI();
+            logTerminal(`Signed in as '${state.username}'`);
+            submitScoreAndRefresh(false);
         }
 
-        document.getElementById("btn-submit-score").addEventListener("click", () => {
-            const nameInput = document.getElementById("player-name").value.trim();
-            const name = nameInput || "Anonymous";
+        function handleSignOut() {
+            logTerminal(`Signed out from '${state.username}'`);
+            state.username = "";
+            document.getElementById("user-rank-display").textContent = "Rank: --";
+            saveGame(true);
+            updateAuthUI();
+            loadGlobalLeaderboard();
+        }
+
+        document.getElementById("btn-sign-in").addEventListener("click", handleSignIn);
+        document.getElementById("btn-sign-out").addEventListener("click", handleSignOut);
+        document.getElementById("btn-sync-score").addEventListener("click", () => submitScoreAndRefresh(false));
+
+        // --- GLOBAL CROSS-DESKTOP LEADERBOARD (DREAMLO) ---
+        function submitScoreAndRefresh(silent = false) {
+            if (!state.username || state.username.trim() === "") {
+                loadGlobalLeaderboard();
+                return;
+            }
+            const name = state.username;
             const score = state.total_loc_earned;
 
-            let scores = JSON.parse(localStorage.getItem("local_leaderboard") || "[]");
-            scores.push({ name, score });
-            scores.sort((a, b) => b.score - a.score);
-            scores = scores.slice(0, 10);
+            fetch(`https://www.dreamlo.com/lb/${PRIVATE_KEY}/add/${encodeURIComponent(name)}/${score}`)
+                .then(() => {
+                    if (!silent) logTerminal(`Synced score for '${name}' (${formatNum(score)} LOC)!`);
+                    loadGlobalLeaderboard();
+                })
+                .catch(() => {
+                    if (!silent) logTerminal("Failed to submit score to server.");
+                    loadGlobalLeaderboard();
+                });
+        }
 
-            localStorage.setItem("local_leaderboard", JSON.stringify(scores));
-            logTerminal(`Saved score for '${name}' (${formatNum(score)} LOC)!`);
-            loadLocalLeaderboard();
-        });
+        function loadGlobalLeaderboard() {
+            const listEl = document.getElementById("leaderboard-list");
+            const rankDisplay = document.getElementById("user-rank-display");
+
+            fetch(`https://www.dreamlo.com/lb/${PUBLIC_KEY}/json`)
+                .then(res => res.json())
+                .then(data => {
+                    listEl.innerHTML = "";
+                    if (!data.dreamlo || !data.dreamlo.leaderboard) {
+                        listEl.innerHTML = `<div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">No high scores saved yet!</div>`;
+                        if (rankDisplay) rankDisplay.textContent = "Rank: Unranked";
+                        return;
+                    }
+
+                    let entries = data.dreamlo.leaderboard.entry;
+                    if (!Array.isArray(entries)) entries = [entries];
+
+                    // Find player position
+                    let userRank = "Unranked";
+                    if (state.username) {
+                        const foundIdx = entries.findIndex(e => e.name.toLowerCase() === state.username.toLowerCase());
+                        if (foundIdx !== -1) {
+                            userRank = `#${foundIdx + 1}`;
+                        }
+                    }
+                    if (rankDisplay) rankDisplay.textContent = `Rank: ${userRank}`;
+
+                    entries.slice(0, 10).forEach((entry, idx) => {
+                        const row = document.createElement("div");
+                        row.className = "leaderboard-row";
+                        const isCurrentUser = state.username && (entry.name.toLowerCase() === state.username.toLowerCase());
+                        const nameStyle = isCurrentUser ? "color: var(--accent-cyan); font-weight: bold;" : "";
+                        row.innerHTML = `
+                            <span><span class="leaderboard-rank">#${idx + 1}</span><b style="${nameStyle}">${entry.name}</b>${isCurrentUser ? ' (You)' : ''}</span>
+                            <span class="leaderboard-score">${formatNum(parseInt(entry.score))} LOC</span>
+                        `;
+                        listEl.appendChild(row);
+                    });
+                })
+                .catch(() => {
+                    listEl.innerHTML = `<div style="color: #f38ba8; text-align: center; padding: 10px 0;">Failed to fetch global ranks.</div>`;
+                });
+        }
 
         // --- HELPER FUNCTIONS ---
         function formatNum(n) {
@@ -597,22 +686,6 @@
         function updateActiveButtonImage() {
             const activeSkin = button_upgrades[state.active_button_idx].img;
             document.getElementById("click-btn-img").src = activeSkin;
-        }
-
-        function checkAchievements() {
-            achievements.forEach(ach => {
-                if (ach.done) return;
-                let val = 0;
-                if (ach.req_type === "clicks") val = state.total_clicks;
-                else if (ach.req_type === "lps") val = state.loc_per_sec * getRebirthMultiplier();
-                else val = state.total_loc_earned;
-
-                if (val >= ach.req) {
-                    ach.done = true;
-                    logTerminal(`🏆 Achievement Unlocked: ${ach.name}!`);
-                    renderAchievements();
-                }
-            });
         }
 
         // --- CORE UI RENDERING ---
@@ -813,20 +886,108 @@
             }
         });
 
-        // --- PASSIVE INCOME LOOP ---
+        function checkAchievements() {
+            achievements.forEach(ach => {
+                if (!ach.done) {
+                    const reqType = ach.req_type || "loc";
+                    let unlocked = false;
+
+                    if (reqType === "loc" && state.total_loc_earned >= ach.req) unlocked = true;
+                    if (reqType === "clicks" && state.total_clicks >= ach.req) unlocked = true;
+                    if (reqType === "lps" && (state.loc_per_sec * getRebirthMultiplier()) >= ach.req) unlocked = true;
+
+                    if (unlocked) {
+                        ach.done = true;
+                        logTerminal(`ACHIEVEMENT UNLOCKED: ${ach.name}!`);
+                    }
+                }
+            });
+            renderAchievements();
+        }
+
+        // --- SAVE / LOAD / RESET ---
+        function saveGame(silent = false) {
+            const saveData = {
+                state,
+                button_upgrades: button_upgrades.map(b => b.owned),
+                upgrades: upgrades.map(u => ({ count: u.count, cost: u.cost, unlocked: u.unlocked })),
+                achievements: achievements.map(a => a.done)
+            };
+            localStorage.setItem("geiger_clicker_save", JSON.stringify(saveData));
+            if (!silent) logTerminal("System state saved to LocalStorage");
+        }
+
+        function loadGame() {
+            const raw = localStorage.getItem("geiger_clicker_save");
+            if (!raw) return;
+            try {
+                const saveData = JSON.parse(raw);
+                Object.assign(state, saveData.state);
+
+                if (saveData.button_upgrades) {
+                    saveData.button_upgrades.forEach((owned, idx) => {
+                        if (button_upgrades[idx]) button_upgrades[idx].owned = owned;
+                    });
+                }
+                if (saveData.upgrades) {
+                    saveData.upgrades.forEach((u, idx) => {
+                        if (upgrades[idx]) {
+                            upgrades[idx].count = u.count;
+                            upgrades[idx].cost = u.cost;
+                            upgrades[idx].unlocked = u.unlocked;
+                        }
+                    });
+                }
+                if (saveData.achievements) {
+                    saveData.achievements.forEach((done, idx) => {
+                        if (achievements[idx]) achievements[idx].done = done;
+                    });
+                }
+                updateActiveButtonImage();
+                logTerminal("Loaded save state from LocalStorage");
+                updateUI();
+            } catch (e) {
+                logTerminal("Failed to load save file.");
+            }
+        }
+
+        function resetGame() {
+            if (confirm("Are you sure you want to reset all game progress? This action cannot be undone.")) {
+                localStorage.removeItem("geiger_clicker_save");
+                location.reload();
+            }
+        }
+
+        document.getElementById("btn-save").addEventListener("click", () => saveGame(false));
+        document.getElementById("btn-load").addEventListener("click", loadGame);
+        document.getElementById("btn-reset").addEventListener("click", resetGame);
+
+        // --- AUTO LOOPS ---
+        // Passive LOC income loop
         setInterval(() => {
             if (state.loc_per_sec > 0) {
-                const passiveEarned = (state.loc_per_sec * getRebirthMultiplier()) / 10;
-                state.lines_of_code += passiveEarned;
-                state.total_loc_earned += passiveEarned;
-                state.passive_loc_earned += passiveEarned;
+                const effectiveLPS = Math.floor(state.loc_per_sec * getRebirthMultiplier());
+                state.lines_of_code += effectiveLPS;
+                state.total_loc_earned += effectiveLPS;
+                state.passive_loc_earned += effectiveLPS;
                 updateUI();
             }
-        }, 100);
+        }, 1000);
 
-        // --- INITIALIZATION ---
-        loadLocalLeaderboard();
-        renderAchievements();
+        // Auto Save every 30 seconds
+        setInterval(() => saveGame(true), 30000);
+
+        // Auto Sync score & Update Global Leaderboard every 30 seconds
+        setInterval(() => {
+            submitScoreAndRefresh(true);
+        }, 30000);
+
+        // --- INIT ---
+        logTerminal("System initialized. Build your empire!");
+        loadGame();
+        updateAuthUI();
+        loadGlobalLeaderboard();
+        updateActiveButtonImage();
         updateUI();
     </script>
 </body>
