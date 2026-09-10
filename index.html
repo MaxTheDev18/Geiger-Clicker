@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geiger_Clicker_1.0</title>
+    <style>
+        :root {
+            --bg-color: #1e1e2e;
+            --panel-bg: #181825;
+            --dark-panel: #11111b;
+            --text-main: #cdd6f4;
+            --accent-green: #a6e3a1;
+            --accent-blue: #89b4fa;
+            --accent-cyan: #89dceb;
+            --accent-purple: #cba6f7;
+            --accent-red: #f38ba8;
+            --accent-pink: #f5e0dc;
+            --border-color: #45475a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        /* HEADER & CLICKER AREA */
+        header {
+            text-align: center;
+            background-color: var(--bg-color);
+            padding-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: var(--text-main);
+            margin-bottom: 5px;
+        }
+
+        #score-label {
+            font-size: 1.4rem;
+            color: var(--accent-green);
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        #stats-label {
+            font-size: 0.9rem;
+            color: var(--accent-cyan);
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+
+        .clicker-container {
+            position: relative;
+            width: 320px;
+            height: 110px;
+            margin: 0 auto;
+            background-color: var(--dark-panel);
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #click-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            outline: none;
+            padding: 0;
+            transition: transform 0.05s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #click-btn img {
+            max-width: 260px;
+            max-height: 90px;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        #click-btn:active {
+            transform: scale(0.93) translateY(3px);
+        }
+
+        .floating-text {
+            position: absolute;
+            color: var(--accent-green);
+            font-weight: bold;
+            font-size: 1.1rem;
+            pointer-events: none;
+            animation: floatUp 0.6s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-25px); }
+        }
+
+        /* MAIN 3-COLUMN LAYOUT */
+        .main-container {
+            display: grid;
+            grid-template-columns: 380px 1fr 380px;
+            gap: 15px;
+            flex: 1;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 1100px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-title {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: var(--accent-pink);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .scrollable-panel {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        /* BUTTONS & ITEMS */
+        button.action-btn {
+            width: 100%;
+            background-color: #313244;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.1s;
+        }
+
+        button.action-btn:hover:not(:disabled) {
+            background-color: var(--border-color);
+        }
+
+        button.action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        button.action-btn.equipped {
+            background-color: var(--accent-green) !important;
+            color: var(--dark-panel) !important;
+            font-weight: bold;
+        }
+
+        /* FACILITIES LIST */
+        .facility-row {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+
+        .facility-title {
+            color: var(--accent-blue);
+            font-weight: bold;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
+
+        .facility-icons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .facility-icon-img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
+
+        /* TERMINAL LOG */
+        #terminal {
+            height: 120px;
+            background-color: var(--dark-panel);
+            color: var(--accent-green);
+            border: 2px inset var(--border-color);
+            padding: 8px;
+            font-size: 0.75rem;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            border-radius: 4px;
+        }
+
+        /* REBIRTH & STATS */
+        .rebirth-title {
+            color: var(--accent-purple);
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .btn-save { background-color: var(--accent-green); color: var(--dark-panel); font-weight: bold; }
+        .btn-load { background-color: var(--accent-blue); color: var(--dark-panel); font-weight: bold; }
+        .btn-reset { background-color: var(--accent-red); color: var(--dark-panel); font-weight: bold; }
+
+        .achievement-item {
+            font-size: 0.75rem;
+            padding: 3px 0;
+            color: #6c7086;
+        }
+
+        .achievement-item.unlocked {
+            color: var(--accent-green);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Geiger Clicker</h1>
+        <div id="score-label">Lines of Code: 0</div>
+        <div id="stats-label">Click Power: 1 | LOC/sec: 0</div>
+        
+        <div class="clicker-container" id="click-area">
+            <button id="click-btn">
+                <img id="click-btn-img" src="geiger.png" alt="Geiger Button">
+            </button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- LEFT COLUMN: SKINS & SHOP -->
+        <div>
+            <div class="section-title">-- Button Skins & Upgrades --</div>
+            <div class="panel" id="skins-container"></div>
+
+            <div class="section-title">-- Upgrades & Shop --</div>
+            <div class="panel scrollable-panel" id="shop-container"></div>
+        </div>
+
+        <!-- MIDDLE COLUMN: FACILITIES -->
+        <div>
+            <div class="section-title">-- Built Facilities & Devs --</div>
+            <div class="panel scrollable-panel" id="facilities-container">
+                <div style="color: #585b70; font-style: italic; text-align: center; padding: 40px 0;">
+                    No facilities built yet.<br>Purchase items from the shop to view them here!
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: SYSTEM TERMINAL, REBIRTH & STATS -->
+        <div>
+            <div class="section-title">-- System Terminal Log --</div>
+            <div id="terminal"></div>
+
+            <div class="section-title rebirth-title" style="margin-top: 15px;">-- Rebirth System --</div>
+            <div class="panel">
+                <div id="rebirth-count" style="color: var(--accent-purple); font-weight: bold; font-size: 0.85rem; margin-bottom: 6px;">
+                    Rebirths: 0 (1.0x Production)
+                </div>
+                <button class="action-btn" id="rebirth-btn" style="background-color: var(--accent-purple); color: var(--dark-panel); font-weight: bold; text-align: center;">
+                    Rebirth<br>Cost: 1,000,000,000 Lifetime LOC
+                </button>
+            </div>
+
+            <div class="section-title">-- Analytics & Save --</div>
+            <div class="panel">
+                <div id="stat-clicks" style="font-size: 0.8rem; margin-bottom: 3px;">Total Clicks: 0</div>
+                <div id="stat-earned" style="font-size: 0.8rem; margin-bottom: 3px;">Lifetime LOC: 0</div>
+                <div id="stat-split" style="font-size: 0.8rem; margin-bottom: 3px;">Manual: 0 | Passive: 0</div>
+                <div id="stat-time" style="font-size: 0.8rem; margin-bottom: 8px;">Session Time: 0s</div>
+                
+                <div class="action-grid">
+                    <button class="action-btn btn-save" id="btn-save" style="text-align: center;">💾 Save</button>
+                    <button class="action-btn btn-load" id="btn-load" style="text-align: center;">📂 Load</button>
+                    <button class="action-btn btn-reset" id="btn-reset" style="text-align: center;">⚠️ Reset</button>
+                </div>
+            </div>
+
+            <div class="section-title">-- Achievements --</div>
+            <div class="panel scrollable-panel" id="achievements-container"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- GAME STATE ---
+        let state = {
+            lines_of_code: 0,
+            click_power: 1,
+            loc_per_sec: 0,
+            rebirths: 0,
+            total_clicks: 0,
+            total_loc_earned: 0,
+            manual_loc_earned: 0,
+            passive_loc_earned: 0,
+            start_time: Date.now(),
+            active_button_idx: 0
+        };
+
+        const button_upgrades = [
+            { name: "Default Geiger", cost: 0, power_mult: 1, img: "geiger.png", owned: true },
+            { name: "Blue Geiger (Sad)", cost: 5000, power_mult: 2, img: "SADGEIGER.png", owned: false },
+            { name: "Red Geiger (Angy)", cost: 250000, power_mult: 5, img: "ANGYGEIGER.png", owned: false },
+            { name: "Yellow Geiger (Juandice)", cost: 10000000, power_mult: 15, img: "JuandiceGeiger.png", owned: false },
+            { name: "Laser Red Geiger", cost: 500000000, power_mult: 50, img: "ANGYGEIGER.png", owned: false },
+            { name: "Green Geiger", cost: 25000000000, power_mult: 250, img: "GreenGeiger.png", owned: false }
+        ];
+
+        const upgrade_list = [
+            ["Ergonomic Mouse", 15, "click", 1],
+            ["Mechanical Keyboard", 50, "click", 3],
+            ["Hire Junior Dev", 100, "auto", 1],
+            ["Coffee Machine", 250, "click", 8],
+            ["Dual Monitors", 500, "auto", 5],
+            ["Stack Overflow Sub", 1000, "click", 20],
+            ["Hire Mid-Level Dev", 2500, "auto", 15],
+            ["IDE Dark Theme", 5000, "click", 50],
+            ["Standing Desk", 10000, "auto", 40],
+            ["Ultrawide Monitor", 20000, "click", 120],
+            ["Hire Senior Dev", 40000, "auto", 100],
+            ["Energy Drink Fridge", 75000, "click", 300],
+            ["Git Automation Bot", 120000, "auto", 250],
+            ["Switch Lube Kit", 200000, "click", 700],
+            ["Hire Lead Architect", 350000, "auto", 600],
+            ["Fiber Optic Internet", 500000, "click", 1500],
+            ["Cloud Server Cluster", 800000, "auto", 1200],
+            ["Custom Keycaps", 1200000, "click", 3000],
+            ["AI Copilot Sub", 2000000, "auto", 2500],
+            ["Triple Monitor Arm", 3500000, "click", 7000],
+            ["DevOps Specialist", 5000000, "auto", 5000],
+            ["Herman Miller Chair", 8000000, "click", 12000],
+            ["Local LLM Server", 12000000, "auto", 10000],
+            ["Stream Deck Macro Pad", 18000000, "click", 25000],
+            ["DBA Specialist", 25000000, "auto", 20000],
+            ["Cold Brew Keg", 40000000, "click", 50000],
+            ["Kubernetes Cluster", 60000000, "auto", 45000],
+            ["Trackball Mouse", 90000000, "click", 100000],
+            ["Security Auditor", 130000000, "auto", 80000],
+            ["Split Ortholinear Keys", 180000000, "click", 180000],
+            ["CI/CD Pipeline Rig", 250000000, "auto", 150000],
+            ["ANC Headphones", 350000000, "click", 300000],
+            ["Data Center Rack", 500000000, "auto", 400000],
+            ["Custom Solder PCB", 750000000, "click", 650000],
+            ["AI Research Team", 1000000000, "auto", 800000],
+            ["USB Foot Pedal", 1500000000, "click", 1200000],
+            ["Dedicated Server Farm", 2200000000, "auto", 1600000],
+            ["EE Breadboard Kit", 3200000000, "click", 2500000],
+            ["Quantum Compiler", 4500000000, "auto", 3500000],
+            ["Neural BCI Unit", 6500000000, "click", 5000000],
+            ["Neural Cluster Rig", 9000000000, "auto", 7000000],
+            ["Cybernetic Hands", 13000000000, "click", 10000000],
+            ["Satellite Data Relay", 18000000000, "auto", 14000000],
+            ["Sub-light Fiber Link", 25000000000, "click", 20000000],
+            ["Dyson Swarm Node", 35000000000, "auto", 28000000],
+            ["Quantum Key Matrix", 50000000000, "click", 40000000],
+            ["AGI Coding Agent", 75000000000, "auto", 60000000],
+            ["Mind-Upload Station", 100000000000, "click", 90000000],
+            ["Galactic Server Mesh", 150000000000, "auto", 130000000],
+            ["Universal Code Matrix", 250000000000, "click", 200000000]
+        ];
+
+        let upgrades = upgrade_list.map(([name, cost, type, power], idx) => ({
+            name, cost, base_cost: cost, type, power, count: 0, unlocked: idx === 0
+        }));
+
+        const achievements = [
+            { name: "Hello World", desc: "Write 1 LOC", req: 1, done: false },
+            { name: "Script Kiddie", desc: "Write 1,000 LOC", req: 1000, done: false },
+            { name: "Junior Developer", desc: "Write 50,000 LOC", req: 50000, done: false },
+            { name: "Tech Enterprise", desc: "Write 1,000,000 LOC", req: 1000000, done: false },
+            { name: "Senior Staff Engineer", desc: "Write 100,000,000 LOC", req: 100000000, done: false },
+            { name: "Unicorn Startup", desc: "Write 10,000,000,000 LOC", req: 10000000000, done: false },
+            { name: "Software Singularity", desc: "Write 1,000,000,000,000 LOC", req: 1000000000000, done: false },
+            { name: "Butterfingers", desc: "Click 10 times", req_type: "clicks", req: 10, done: false },
+            { name: "Code Monkey", desc: "Click 500 times", req_type: "clicks", req: 500, done: false },
+            { name: "Carpal Tunnel Risk", desc: "Click 2,500 times", req_type: "clicks", req: 2500, done: false },
+            { name: "Keyboard Warrior", desc: "Click 10,000 times", req_type: "clicks", req: 10000, done: false },
+            { name: "Human Macro", desc: "Click 50,000 times", req_type: "clicks", req: 50000, done: false },
+            { name: "10x Developer", desc: "Reach 50 LOC/sec", req_type: "lps", req: 50, done: false },
+            { name: "CI/CD Pipeline", desc: "Reach 500 LOC/sec", req_type: "lps", req: 500, done: false },
+            { name: "Server Farm", desc: "Reach 10,000 LOC/sec", req_type: "lps", req: 10000, done: false },
+            { name: "Neural Overclock", desc: "Reach 250,000 LOC/sec", req_type: "lps", req: 250000, done: false },
+            { name: "AGI Swarm", desc: "Reach 5,000,000 LOC/sec", req_type: "lps", req: 5000000, done: false },
+            { name: "Galactic Computer", desc: "Reach 100,000,000 LOC/sec", req_type: "lps", req: 100000000, done: false }
+        ];
+
+        // --- HELPER FUNCTIONS ---
+        function formatNum(n) {
+            return Math.floor(n).toLocaleString();
+        }
+
+        function logTerminal(msg) {
+            const term = document.getElementById("terminal");
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+            term.innerHTML += `[${time}] ${msg}\n`;
+            term.scrollTop = term.scrollHeight;
+        }
+
+        function getRebirthMultiplier() {
+            return 1.0 + (state.rebirths * 1.5);
+        }
+
+        function getRebirthCost() {
+            return 1000000000 * Math.pow(10, state.rebirths);
+        }
+
+        function getEffectiveClickPower() {
+            const skinMult = button_upgrades[state.active_button_idx].power_mult;
+            return Math.floor(state.click_power * skinMult * getRebirthMultiplier());
+        }
+
+        function updateActiveButtonImage() {
+            const activeSkin = button_upgrades[state.active_button_idx].img;
+            document.getElementById("click-btn-img").src = activeSkin;
+        }
+
+        // --- CORE UI RENDERING ---
+        function renderSkins() {
+            const container = document.getElementById("skins-container");
+            container.innerHTML = "";
+            button_upgrades.forEach((skin, idx) => {
+                const btn = document.createElement("button");
+                btn.className = "action-btn";
+                const isActive = state.active_button_idx === idx;
+                
+                if (skin.owned) {
+                    btn.textContent = `${skin.name} (${skin.power_mult}x) [${isActive ? "EQUIPPED" : "EQUIP"}]`;
+                    if (isActive) btn.classList.add("equipped");
+                    btn.onclick = () => {
+                        state.active_button_idx = idx;
+                        updateActiveButtonImage();
+                        logTerminal(`Equipped Button Skin: ${skin.name}`);
+                        updateUI();
+                    };
+                } else {
+                    btn.textContent = `${skin.name} (${skin.power_mult}x) Cost: ${formatNum(skin.cost)} LOC`;
+                    btn.disabled = state.lines_of_code < skin.cost;
+                    btn.onclick = () => {
+                        if (state.lines_of_code >= skin.cost) {
+                            state.lines_of_code -= skin.cost;
+                            skin.owned = true;
+                            state.active_button_idx = idx;
+                            updateActiveButtonImage();
+                            logTerminal(`Purchased new Button Skin: ${skin.name}`);
+                            updateUI();
+                        }
+                    };
+                }
+                container.appendChild(btn);
+            });
+        }
+
+        function renderShop() {
+            const container = document.getElementById("shop-container");
+            container.innerHTML = "";
+            upgrades.forEach((item, idx) => {
+                if (!item.unlocked) return;
+
+                const boostedPwr = Math.floor(item.power * getRebirthMultiplier());
+                const effect = item.type === "click" ? `+${formatNum(boostedPwr)} click` : `+${formatNum(boostedPwr)}/sec`;
+                
+                const btn = document.createElement("button");
+                btn.className = "action-btn";
+                btn.innerHTML = `${idx+1}. ${item.name} (${effect})<br>Cost: ${formatNum(item.cost)} LOC | Owned: ${item.count}`;
+                btn.disabled = state.lines_of_code < item.cost;
+                btn.onclick = () => buyUpgrade(idx);
+
+                container.appendChild(btn);
+            });
+        }
+
+        function renderFacilities() {
+            const container = document.getElementById("facilities-container");
+            const ownedItems = upgrades.filter(u => u.count > 0);
+
+            if (ownedItems.length === 0) {
+                container.innerHTML = `
+                    <div style="color: #585b70; font-style: italic; text-align: center; padding: 40px 0;">
+                        No facilities built yet.<br>Purchase items from the shop to view them here!
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = "";
+            ownedItems.forEach(item => {
+                const row = document.createElement("div");
+                row.className = "facility-row";
+                
+                const title = document.createElement("div");
+                title.className = "facility-title";
+                title.textContent = `${item.name} (x${item.count})`;
+                
+                const icons = document.createElement("div");
+                icons.className = "facility-icons";
+                const displayCount = Math.min(item.count, 12);
+                for (let i = 0; i < displayCount; i++) {
+                    const iconImg = document.createElement("img");
+                    iconImg.className = "facility-icon-img";
+                    iconImg.src = "geiger.png";
+                    iconImg.alt = item.name;
+                    icons.appendChild(iconImg);
+                }
+
+                row.appendChild(title);
+                row.appendChild(icons);
+                container.appendChild(row);
+            });
+        }
+
+        function renderAchievements() {
+            const container = document.getElementById("achievements-container");
+            container.innerHTML = "";
+            achievements.forEach(ach => {
+                const div = document.createElement("div");
+                div.className = `achievement-item ${ach.done ? 'unlocked' : ''}`;
+                div.textContent = `${ach.done ? '✅' : '🔒'} ${ach.name}: ${ach.desc}`;
+                container.appendChild(div);
+            });
+        }
+
+        function updateUI() {
+            document.getElementById("score-label").textContent = `Lines of Code: ${formatNum(state.lines_of_code)}`;
+            document.getElementById("stats-label").textContent = `Click Power: ${formatNum(getEffectiveClickPower())} | LOC/sec: ${formatNum(state.loc_per_sec * getRebirthMultiplier())}`;
+            
+            // Stats
+            document.getElementById("stat-clicks").textContent = `Total Clicks: ${formatNum(state.total_clicks)}`;
+            document.getElementById("stat-earned").textContent = `Lifetime LOC: ${formatNum(state.total_loc_earned)}`;
+            document.getElementById("stat-split").textContent = `Manual: ${formatNum(state.manual_loc_earned)} | Passive: ${formatNum(state.passive_loc_earned)}`;
+            
+            const elapsed = Math.floor((Date.now() - state.start_time) / 1000);
+            document.getElementById("stat-time").textContent = `Session Time: ${elapsed}s`;
+
+            // Rebirth
+            const rebirthCost = getRebirthCost();
+            document.getElementById("rebirth-count").textContent = `Rebirths: ${state.rebirths} (${getRebirthMultiplier().toFixed(1)}x Production)`;
+            document.getElementById("rebirth-btn").innerHTML = `Rebirth<br>Cost: ${formatNum(rebirthCost)} Lifetime LOC`;
+            document.getElementById("rebirth-btn").disabled = state.total_loc_earned < rebirthCost;
+
+            checkAchievements();
+            renderSkins();
+            renderShop();
+            renderFacilities();
+        }
+
+        // --- ACTIONS ---
+        function buyUpgrade(idx) {
+            const item = upgrades[idx];
+            if (state.lines_of_code >= item.cost) {
+                state.lines_of_code -= item.cost;
+                item.count++;
+
+                if (item.type === "click") {
+                    state.click_power += item.power;
+                } else {
+                    state.loc_per_sec += item.power;
+                }
+
+                logTerminal(`Purchased: ${item.name} (Level ${item.count})`);
+                item.cost = Math.floor(item.cost * 1.45);
+
+                // Unlock next upgrade
+                if (idx + 1 < upgrades.length) {
+                    upgrades[idx + 1].unlocked = true;
+                }
+
+                updateUI();
+            }
+        }
+
+        document.getElementById("click-btn").addEventListener("click", (e) => {
+            const earned = getEffectiveClickPower();
+            state.lines_of_code += earned;
+            state.total_loc_earned += earned;
+            state.manual_loc_earned += earned;
+            state.total_clicks++;
+
+            // Spawn floating text
+            const rect = document.getElementById("click-area").getBoundingClientRect();
+            const txt = document.createElement("div");
+            txt.className = "floating-text";
+            txt.textContent = `+${formatNum(earned)}`;
+            txt.style.left = `${e.clientX - rect.left - 15}px`;
+            txt.style.top = `${e.clientY - rect.top - 10}px`;
+            document.getElementById("click-area").appendChild(txt);
+            setTimeout(() => txt.remove(), 600);
+
+            if (Math.random() < 0.05) {
+                const flavorMsgs = ["Committed fix to main", "Refactored legacy loop", "Resolved merge conflict", "Passing unit tests..."];
+                logTerminal(`Action: ${flavorMsgs[Math.floor(Math.random() * flavorMsgs.length)]}`);
+            }
+
+            updateUI();
+        });
+
+        // Rebirth
+        document.getElementById("rebirth-btn").addEventListener("click", () => {
+            const cost = getRebirthCost();
+            if (state.total_loc_earned >= cost) {
+                if (confirm(`Are you sure you want to Rebirth?\n\nThis resets LOC, purchases, and button skins, but gives a permanent +150% multiplier boost!`)) {
+                    state.rebirths++;
+                    state.lines_of_code = 0;
+                    state.click_power = 1;
+                    state.loc_per_sec = 0;
+                    state.active_button_idx = 0;
+
+                    button_upgrades.forEach((btn, idx) => btn.owned = idx === 0);
+                    upgrades.forEach((item, idx) => {
+                        item.count = 0;
+                        item.cost = item.base_cost;
+                        item.unlocked = idx === 0;
+                    });
+
+                    updateActiveButtonImage();
+                    logTerminal(`💥 REBIRTH PERFORMED! Multiplier upgraded to ${getRebirthMultiplier().toFixed(1)}x!`);
+                    updateUI();
+                }
+            }
+        });
+
+        function checkAchievements() {
+            achievements.forEach(ach => {
+                if (!ach.done) {
+                    const reqType = ach.req_type || "loc";
+                    let unlocked = false;
+
+                    if (reqType === "loc" && state.total_loc_earned >= ach.req) unlocked = true;
+                    if (reqType === "clicks" && state.total_clicks >= ach.req) unlocked = true;
+                    if (reqType === "lps" && (state.loc_per_sec * getRebirthMultiplier()) >= ach.req) unlocked = true;
+
+                    if (unlocked) {
+                        ach.done = true;
+                        logTerminal(`ACHIEVEMENT UNLOCKED: ${ach.name}!`);
+                    }
+                }
+            });
+            renderAchievements();
+        }
+
+        // --- SAVE / LOAD / RESET ---
+        function saveGame(silent = false) {
+            const saveData = {
+                state,
+                button_upgrades: button_upgrades.map(b => b.owned),
+                upgrades: upgrades.map(u => ({ count: u.count, cost: u.cost, unlocked: u.unlocked })),
+                achievements: achievements.map(a => a.done)
+            };
+            localStorage.setItem("geiger_clicker_save", JSON.stringify(saveData));
+            if (!silent) logTerminal("System state saved to LocalStorage");
+        }
+
+        function loadGame() {
+            const raw = localStorage.getItem("geiger_clicker_save");
+            if (!raw) return;
+            try {
+                const saveData = JSON.parse(raw);
+                Object.assign(state, saveData.state);
+
+                if (saveData.button_upgrades) {
+                    saveData.button_upgrades.forEach((owned, idx) => {
+                        if (button_upgrades[idx]) button_upgrades[idx].owned = owned;
+                    });
+                }
+                if (saveData.upgrades) {
+                    saveData.upgrades.forEach((u, idx) => {
+                        if (upgrades[idx]) {
+                            upgrades[idx].count = u.count;
+                            upgrades[idx].cost = u.cost;
+                            upgrades[idx].unlocked = u.unlocked;
+                        }
+                    });
+                }
+                if (saveData.achievements) {
+                    saveData.achievements.forEach((done, idx) => {
+                        if (achievements[idx]) achievements[idx].done = done;
+                    });
+                }
+                updateActiveButtonImage();
+                logTerminal("Loaded save state from LocalStorage");
+                updateUI();
+            } catch (e) {
+                logTerminal("Failed to load save file.");
+            }
+        }
+
+        function resetGame() {
+            if (confirm("Are you sure you want to reset all game progress? This action cannot be undone.")) {
+                localStorage.removeItem("geiger_clicker_save");
+                location.reload();
+            }
+        }
+
+        document.getElementById("btn-save").addEventListener("click", () => saveGame(false));
+        document.getElementById("btn-load").addEventListener("click", loadGame);
+        document.getElementById("btn-reset").addEventListener("click", resetGame);
+
+        // --- AUTO LOOPS ---
+        setInterval(() => {
+            if (state.loc_per_sec > 0) {
+                const effectiveLPS = Math.floor(state.loc_per_sec * getRebirthMultiplier());
+                state.lines_of_code += effectiveLPS;
+                state.total_loc_earned += effectiveLPS;
+                state.passive_loc_earned += effectiveLPS;
+                updateUI();
+            }
+        }, 1000);
+
+        setInterval(() => saveGame(true), 30000);
+
+        // --- INIT ---
+        logTerminal("System initialized. Build your empire!");
+        loadGame();
+        updateActiveButtonImage();
+        updateUI();
+    </script>
+</body>
+</html>
