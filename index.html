@@ -454,6 +454,7 @@
         // --- API KEYS ---
         const DREAMLO_PUBLIC = "6aa2b76c8f40bb15a86e2999";
         const DREAMLO_PRIVATE = "gbqDR69yDEuPvwbCTdYE6QNQmSIFAK60mv23tKMLJwjw";
+        const DREAMLO_HTTP_BASE = "http://www.dreamlo.com/lb/";
 
         // --- GAME STATE ---
         let state = {
@@ -558,44 +559,54 @@
             { name: "Galactic Computer", desc: "Reach 100,000,000 LOC/sec", req_type: "lps", req: 100000000, done: false }
         ];
 
-        // --- GITHUB PAGES / CORS HELPER FUNCTIONS ---
-        // Reads data from Dreamlo using CORS proxies to bypass GitHub Pages CORS restrictions
-        async function readFromDreamlo(path) {
-            const targetUrl = `https://www.dreamlo.com/lb/${DREAMLO_PUBLIC}/${path}`;
-            const encoded = encodeURIComponent(targetUrl);
-            
-            const proxies = [
-                `https://corsproxy.io/?${encoded}`,
+        // --- GITHUB PAGES MULTI-PROXY PIPELINE ---
+        async function fetchViaProxies(httpUrl) {
+            const encoded = encodeURIComponent(httpUrl);
+            const proxyList = [
                 `https://api.allorigins.win/raw?url=${encoded}`,
-                targetUrl
+                `https://api.codetabs.com/v1/proxy?quest=${encoded}`,
+                `https://corsproxy.io/?${encoded}`
             ];
 
-            for (const url of proxies) {
+            let lastError = null;
+            for (const proxyUrl of proxyList) {
                 try {
-                    const res = await fetch(url);
-                    if (res.ok) {
-                        return await res.json();
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+                    const response = await fetch(proxyUrl, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+
+                    if (response.ok) {
+                        const text = await response.text();
+                        if (text && text.trim().length > 0) {
+                            try {
+                                return JSON.parse(text);
+                            } catch (e) {
+                                return text;
+                            }
+                        }
                     }
-                } catch (e) {
-                    // Try next proxy in fallback array
+                } catch (err) {
+                    lastError = err;
                 }
             }
-            throw new Error("Unable to fetch data from Dreamlo through CORS proxies.");
+            throw new Error(lastError ? lastError.message : "All proxies failed");
         }
 
-        // Writes data to Dreamlo using 'no-cors' mode (bypasses browser CORS policy on GitHub Pages)
+        async function readFromDreamlo(path) {
+            const targetUrl = `${DREAMLO_HTTP_BASE}${DREAMLO_PUBLIC}/${path}`;
+            return await fetchViaProxies(targetUrl);
+        }
+
         async function sendToDreamlo(path) {
-            const targetUrl = `https://www.dreamlo.com/lb/${DREAMLO_PRIVATE}/${path}`;
+            const targetUrl = `${DREAMLO_HTTP_BASE}${DREAMLO_PRIVATE}/${path}`;
             try {
-                await fetch(targetUrl, { mode: 'no-cors' });
+                await fetchViaProxies(targetUrl);
                 return true;
             } catch (e) {
-                try {
-                    await fetch(`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`);
-                    return true;
-                } catch (err) {
-                    return false;
-                }
+                console.error("Dreamlo write error:", e);
+                return false;
             }
         }
 
@@ -625,7 +636,7 @@
             state.username = userInp;
             state.user_pin = pinInp;
 
-            logTerminal(`Logging in as '${state.username}'...`);
+            logTerminal(`Logged in as '${state.username}'...`);
             updateAccountUI();
             
             cloudLoadGame(true);
@@ -669,8 +680,13 @@
                 last_updated: Date.now()
             };
 
-            const dataStr = btoa(JSON.stringify(payload));
-            const path = `add-pipe/${encodeURIComponent(state.username)}/${state.total_loc_earned}/0/${encodeURIComponent(dataStr)}`;
+            // URL-safe base64 encoding to prevent / slashes from breaking Dreamlo API routes
+            let dataStr = btoa(JSON.stringify(payload))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
+
+            const path = `add-pipe/${encodeURIComponent(state.username)}/${state.total_loc_earned}/0/${dataStr}`;
 
             sendToDreamlo(path)
                 .then(() => {
@@ -690,15 +706,23 @@
 
             readFromDreamlo("json")
                 .then(data => {
-                    if (!data || !data.dreamlo || !data.dreamlo.leaderboard) return;
-                    let entries = data.dreamlo.leaderboard.entry;
-                    if (!entries) return;
+                    const leaderboard = data && data.dreamlo ? data.dreamlo.leaderboard : null;
+                    if (!leaderboard || !leaderboard.entry) {
+                        if (!silent) logTerminal("New cloud profile initialized!");
+                        cloudSaveGame(true);
+                        return;
+                    }
+
+                    let entries = leaderboard.entry;
                     if (!Array.isArray(entries)) entries = [entries];
 
                     const match = entries.find(e => e.name && e.name.toLowerCase() === state.username.toLowerCase());
                     if (match && match.text) {
                         try {
-                            const decoded = JSON.parse(atob(match.text));
+                            let base64 = match.text.replace(/-/g, '+').replace(/_/g, '/');
+                            while (base64.length % 4) base64 += '=';
+
+                            const decoded = JSON.parse(atob(base64));
                             Object.assign(state, decoded.state);
 
                             if (decoded.button_upgrades) {
@@ -725,7 +749,8 @@
                             updateUI();
                             if (!silent) logTerminal(`☁️ Loaded save file for '${state.username}' from Cloud!`);
                         } catch (e) {
-                            if (!silent) logTerminal("No previous cloud save found. Created new cloud profile!");
+                            if (!silent) logTerminal("Cloud profile formatted. Created new cloud save!");
+                            cloudSaveGame(true);
                         }
                     } else {
                         if (!silent) logTerminal("New account initialized! Saving to cloud...");
@@ -766,19 +791,15 @@
             readFromDreamlo("json")
                 .then(data => {
                     listEl.innerHTML = "";
-                    if (!data || !data.dreamlo || !data.dreamlo.leaderboard) {
-                        listEl.innerHTML = `<div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">No high scores saved yet!</div>`;
+                    
+                    const leaderboard = data && data.dreamlo ? data.dreamlo.leaderboard : null;
+                    if (!leaderboard || !leaderboard.entry) {
+                        listEl.innerHTML = `<div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">No high scores saved yet! Be the first!</div>`;
                         if (rankDisplay) rankDisplay.textContent = "Unranked";
                         return;
                     }
 
-                    let entries = data.dreamlo.leaderboard.entry;
-                    if (!entries) {
-                        listEl.innerHTML = `<div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">No high scores saved yet!</div>`;
-                        if (rankDisplay) rankDisplay.textContent = "Unranked";
-                        return;
-                    }
-
+                    let entries = leaderboard.entry;
                     if (!Array.isArray(entries)) entries = [entries];
 
                     let userRank = "Unranked";
@@ -800,7 +821,8 @@
                         listEl.appendChild(row);
                     });
                 })
-                .catch(() => {
+                .catch(err => {
+                    console.error("Leaderboard Error:", err);
                     listEl.innerHTML = `<div style="color: #f38ba8; text-align: center; padding: 10px 0;">Failed to fetch global ranks.</div>`;
                 });
         }
