@@ -3,857 +3,683 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geiger_Clicker_1.0</title>
-
+    <title>LOC Clicker - Geiger Leaderboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #1e1e2e;
-            --panel-bg: #181825;
-            --dark-panel: #11111b;
-            --text-main: #cdd6f4;
-            --accent-green: #a6e3a1;
-            --accent-blue: #89b4fa;
-            --accent-cyan: #89dceb;
+            --bg-dark: #0f111a;
+            --bg-card: #1a1c2a;
+            --bg-card-hover: #24273a;
+            --accent-green: #89fc00;
+            --accent-cyan: #74c7ec;
             --accent-purple: #cba6f7;
             --accent-red: #f38ba8;
-            --accent-pink: #f5e0dc;
-            --border-color: #45475a;
+            --text-main: #cdd6f4;
+            --text-muted: #a6adc8;
+            --border-color: rgba(255, 255, 255, 0.1);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Courier New', Courier, monospace;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            padding: 15px;
-        }
-
-        /* HEADER AREA */
-        header {
-            text-align: center;
-            background-color: var(--bg-color);
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--border-color);
-        }
-
-        h1 {
-            font-size: 1.8rem;
-            color: var(--text-main);
-            margin-bottom: 5px;
-        }
-
-        #score-label {
-            font-size: 1.4rem;
-            color: var(--accent-green);
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-
-        #stats-label {
-            font-size: 0.9rem;
-            color: var(--accent-cyan);
-            font-style: italic;
-            margin-bottom: 10px;
-        }
-
-        .clicker-container {
-            position: relative;
-            width: 320px;
-            height: 110px;
-            margin: 0 auto;
-            background-color: var(--dark-panel);
-            border: 2px solid var(--border-color);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
             user-select: none;
         }
 
-        #click-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            outline: none;
-            padding: 0;
-            transition: transform 0.05s ease-in-out;
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
+            padding: 20px;
         }
 
-        #click-btn img {
-            max-width: 260px;
-            max-height: 90px;
-            object-fit: contain;
-            pointer-events: none;
-        }
-
-        #click-btn:active {
-            transform: scale(0.93) translateY(3px);
-        }
-
-        .floating-text {
-            position: absolute;
-            color: var(--accent-green);
-            font-weight: bold;
-            font-size: 1.1rem;
-            pointer-events: none;
-            animation: floatUp 0.6s ease-out forwards;
-        }
-
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-25px); }
-        }
-
-        /* MAIN LAYOUT */
-        .main-container {
-            display: grid;
-            grid-template-columns: 360px 1fr 380px;
-            gap: 15px;
-            flex: 1;
-            margin-top: 15px;
-        }
-
-        @media (max-width: 1100px) {
-            .main-container {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .section-title {
-            font-size: 0.95rem;
-            font-weight: bold;
-            color: var(--accent-pink);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-        }
-
-        .panel {
-            background-color: var(--panel-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 15px;
-        }
-
-        .scrollable-panel {
-            max-height: 420px;
-            overflow-y: auto;
-        }
-
-        /* TAB SYSTEM STYLES */
-        .tab-bar {
+        .container {
+            width: 100%;
+            max-width: 900px;
             display: flex;
-            gap: 4px;
-            margin-bottom: 8px;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        header {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .header-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-stat .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .header-stat .value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--accent-green);
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
         }
 
         .tab-btn {
-            flex: 1;
-            background-color: var(--dark-panel);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            padding: 8px 4px;
-            font-size: 0.75rem;
-            font-weight: bold;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 8px;
             cursor: pointer;
-            border-radius: 4px 4px 0 0;
-            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .tab-btn.active {
-            background-color: var(--panel-bg);
-            border-bottom: 2px solid var(--accent-blue);
-            color: var(--accent-blue);
+            color: var(--bg-dark);
+            background: var(--accent-green);
         }
 
         .tab-content {
             display: none;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         .tab-content.active {
             display: block;
         }
 
-        /* BUTTONS & INPUTS */
-        input.account-input {
-            width: 100%;
-            background-color: var(--dark-panel);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 6px;
-            margin-bottom: 6px;
-            border-radius: 4px;
-            font-size: 0.8rem;
+        /* Clicker Area */
+        .clicker-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+            gap: 20px;
         }
 
-        button.action-btn {
-            width: 100%;
-            background-color: #313244;
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            padding: 8px;
-            margin-bottom: 5px;
-            border-radius: 4px;
-            font-size: 0.8rem;
+        .big-click-btn {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #2a2d42 0%, #151722 100%);
+            border: 4px solid var(--accent-green);
+            color: var(--accent-green);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            font-weight: 800;
             cursor: pointer;
-            text-align: left;
-            transition: background 0.1s;
+            box-shadow: 0 0 30px rgba(137, 252, 0, 0.2);
+            transition: transform 0.05s ease, box-shadow 0.2s ease;
+            outline: none;
         }
 
-        button.action-btn:hover:not(:disabled) {
-            background-color: var(--border-color);
+        .big-click-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 15px rgba(137, 252, 0, 0.4);
         }
 
-        button.action-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        /* Upgrades List */
+        .upgrades-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
         }
 
-        button.action-btn.equipped {
-            background-color: var(--accent-green) !important;
-            color: var(--dark-panel) !important;
+        .upgrade-card {
+            background: var(--bg-card-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .upgrade-card h4 {
+            color: var(--accent-cyan);
+        }
+
+        .upgrade-card p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Buttons */
+        .btn {
+            background: var(--accent-cyan);
+            color: var(--bg-dark);
+            border: none;
+            padding: 10px 18px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+        }
+
+        .btn-green {
+            background: var(--accent-green);
+        }
+
+        .btn-xs {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            background: var(--accent-purple);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 4px;
             font-weight: bold;
+            cursor: pointer;
         }
 
-        /* LEADERBOARD LIST */
+        /* Leaderboard Styling */
+        .lb-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .user-status {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .leaderboard-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
         .leaderboard-row {
             display: flex;
             justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px dashed #313244;
-            font-size: 0.8rem;
-        }
-
-        .leaderboard-row:last-child {
-            border-bottom: none;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--bg-card-hover);
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-cyan);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
         }
 
         .leaderboard-rank {
-            color: var(--accent-pink);
+            color: var(--accent-purple);
             font-weight: bold;
-            margin-right: 5px;
+            width: 40px;
         }
 
         .leaderboard-score {
             color: var(--accent-green);
-        }
-
-        /* FACILITIES LIST */
-        .facility-row {
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 8px;
-            margin-bottom: 8px;
-        }
-
-        .facility-title {
-            color: var(--accent-blue);
             font-weight: bold;
-            font-size: 0.85rem;
-            margin-bottom: 5px;
         }
 
-        .facility-icons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            align-items: center;
-        }
-
-        .facility-icon-img {
-            width: 24px;
-            height: 24px;
-            object-fit: contain;
-        }
-
-        /* TERMINAL LOG */
-        #terminal {
-            height: 220px;
-            background-color: var(--dark-panel);
+        .you-badge {
+            background: rgba(137, 252, 0, 0.2);
             color: var(--accent-green);
-            border: 2px inset var(--border-color);
-            padding: 8px;
+            padding: 2px 6px;
+            border-radius: 4px;
             font-size: 0.75rem;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            border-radius: 4px;
+            margin-left: 6px;
         }
 
-        /* REBIRTH & STATS */
-        .rebirth-title {
-            color: var(--accent-purple);
-        }
-
-        .action-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 5px;
-            margin-top: 8px;
-        }
-
-        .btn-save { background-color: var(--accent-green); color: var(--dark-panel); font-weight: bold; }
-        .btn-load { background-color: var(--accent-blue); color: var(--dark-panel); font-weight: bold; }
-        .btn-reset { background-color: var(--accent-red); color: var(--dark-panel); font-weight: bold; }
-
-        .achievement-item {
-            font-size: 0.8rem;
-            padding: 6px 0;
-            border-bottom: 1px solid #313244;
-            color: #6c7086;
-        }
-
-        .achievement-item.unlocked {
+        /* Floating Text */
+        .floating-text {
+            position: fixed;
+            pointer-events: none;
             color: var(--accent-green);
+            font-family: 'JetBrains Mono', monospace;
             font-weight: bold;
+            animation: floatUp 1s ease-out forwards;
+            z-index: 1000;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-40px); }
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        input[type="text"] {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            outline: none;
+            font-family: inherit;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Geiger Clicker</h1>
-        <div id="score-label">Lines of Code: 0</div>
-        <div id="stats-label">Click Power: 1 | LOC/sec: 0</div>
-        
-        <div class="clicker-container" id="click-area">
-            <button id="click-btn">
-                <img id="click-btn-img" src="geiger.png" alt="Geiger Button">
-            </button>
-        </div>
-    </header>
+    <div class="container">
+        <header>
+            <div class="header-stat">
+                <span class="label">Lines of Code (LOC)</span>
+                <span class="value" id="loc-display">0</span>
+            </div>
+            <div class="header-stat">
+                <span class="label">LOC per Second</span>
+                <span class="value" style="color: var(--accent-cyan);" id="cps-display">0.0</span>
+            </div>
+        </header>
 
-    <div class="main-container">
-        <!-- LEFT COLUMN: SKINS & SHOP -->
-        <div>
-            <div class="section-title">-- Button Skins & Upgrades --</div>
-            <div class="panel" id="skins-container"></div>
+        <nav class="nav-tabs">
+            <button class="tab-btn active" id="btn-tab-clicker" onclick="switchTab('clicker')">💻 Clicker</button>
+            <button class="tab-btn" id="btn-tab-upgrades" onclick="switchTab('upgrades')">⚡ Upgrades</button>
+            <button class="tab-btn" id="btn-tab-leaderboard" onclick="switchTab('leaderboard')">🏆 Leaderboard</button>
+            <button class="tab-btn" id="btn-tab-settings" onclick="switchTab('settings')">⚙️ Settings</button>
+        </nav>
 
-            <div class="section-title">-- Upgrades & Shop --</div>
-            <div class="panel scrollable-panel" id="shop-container"></div>
-        </div>
-
-        <!-- MIDDLE COLUMN: FACILITIES -->
-        <div>
-            <div class="section-title">-- Built Facilities & Devs --</div>
-            <div class="panel scrollable-panel" id="facilities-container">
-                <div style="color: #585b70; font-style: italic; text-align: center; padding: 40px 0;">
-                    No facilities built yet.<br>Purchase items from the shop to view them here!
-                </div>
+        <!-- CLICKER TAB -->
+        <div id="clicker" class="tab-content active">
+            <div class="clicker-box">
+                <button class="big-click-btn" id="click-btn" onclick="handleClick(event)">COMPILE()</button>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Click to write lines of code!</p>
             </div>
         </div>
 
-        <!-- RIGHT COLUMN: TABBED SYSTEM HUB -->
-        <div>
-            <div class="section-title">-- System Hub --</div>
-            
-            <!-- TAB BUTTONS -->
-            <div class="tab-bar">
-                <button class="tab-btn active" onclick="switchTab('tab-cloud', this)">☁️ Account</button>
-                <button class="tab-btn" onclick="switchTab('tab-leaderboard', this)">🏆 Ranks</button>
-                <button class="tab-btn" onclick="switchTab('tab-achievements', this)">🏅 Badges</button>
-                <button class="tab-btn" onclick="switchTab('tab-terminal', this)">💻 Log</button>
-                <button class="tab-btn" onclick="switchTab('tab-stats', this)">📊 Stats</button>
-            </div>
+        <!-- UPGRADES TAB -->
+        <div id="upgrades" class="tab-content">
+            <h3 style="margin-bottom: 15px;">Developer Upgrades</h3>
+            <div class="upgrades-grid" id="upgrades-container"></div>
+        </div>
 
-            <!-- TAB 1: INSTANT CLOUD ACCOUNT -->
-            <div id="tab-cloud" class="tab-content active panel">
-                <div id="account-logged-out">
-                    <div style="font-size: 0.8rem; color: var(--accent-cyan); margin-bottom: 8px;">
-                        <b>Cloud Account Login / Register</b><br>Save progress and sync across devices!
-                    </div>
-                    <input type="text" id="acc-username" class="account-input" placeholder="Username" maxlength="16">
-                    <input type="password" id="acc-pin" class="account-input" placeholder="4-Digit PIN / Password" maxlength="8">
-                    <button class="action-btn" id="btn-cloud-login" style="background-color: var(--accent-blue); color: var(--dark-panel); font-weight: bold; text-align: center;">
-                        🔑 Log In / Create Account
-                    </button>
+        <!-- LEADERBOARD TAB -->
+        <div id="leaderboard" class="tab-content">
+            <div class="lb-header">
+                <div>
+                    <h3>Global Leaderboard</h3>
+                    <div class="user-status">Rank: <b id="user-rank-display" style="color: var(--accent-purple);">Loading...</b> | Status: <span id="leaderboard-status">Initializing</span></div>
                 </div>
-
-                <div id="account-logged-in" style="display: none;">
-                    <div style="font-size: 0.85rem; margin-bottom: 8px;">
-                        Logged in as: <b id="user-display-name" style="color: var(--accent-green);">--</b>
-                    </div>
-                    <div style="font-size: 0.75rem; color: #a6adc8; margin-bottom: 10px;" id="cloud-sync-status">
-                        Status: Connected
-                    </div>
-                    
-                    <button class="action-btn btn-save" id="btn-cloud-save" style="text-align: center; margin-bottom: 6px;">
-                        ☁️ Save Progress to Cloud
-                    </button>
-                    <button class="action-btn btn-load" id="btn-cloud-load" style="text-align: center; margin-bottom: 6px;">
-                        ☁️ Load Progress from Cloud
-                    </button>
-                    <button class="action-btn" id="btn-cloud-logout" style="background-color: var(--accent-red); color: var(--dark-panel); font-weight: bold; text-align: center;">
-                        Sign Out
-                    </button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-green" onclick="syncToGlobalLeaderboard()">Sync High Score</button>
+                    <button class="btn" onclick="loadGlobalLeaderboard()">Refresh Ranks</button>
                 </div>
             </div>
-
-            <!-- TAB 2: GLOBAL LEADERBOARD -->
-            <div id="tab-leaderboard" class="tab-content panel">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="font-size: 0.8rem; color: var(--accent-pink);">Your Rank: <b id="user-rank-display">--</b></span>
-                    <button class="action-btn" id="btn-refresh-lb" style="width: auto; padding: 3px 8px; margin-bottom: 0; font-size: 0.7rem;">🔄 Refresh</button>
-                </div>
-
-                <div id="leaderboard-list" style="max-height: 200px; overflow-y: auto;">
-                    <div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">Loading ranks...</div>
-                </div>
+            <div class="leaderboard-list" id="leaderboard-list">
+                <div style="color: var(--text-muted); font-style: italic; text-align: center; padding: 20px 0;">Loading ranks...</div>
             </div>
+        </div>
 
-            <!-- TAB 3: ACHIEVEMENTS -->
-            <div id="tab-achievements" class="tab-content panel scrollable-panel" style="height: 250px;">
-                <!-- Dynamically loaded -->
-            </div>
-
-            <!-- TAB 4: TERMINAL LOG -->
-            <div id="tab-terminal" class="tab-content panel">
-                <div id="terminal"></div>
-            </div>
-
-            <!-- TAB 5: LOCAL STATS & SAVES -->
-            <div id="tab-stats" class="tab-content panel">
-                <div id="stat-clicks" style="font-size: 0.8rem; margin-bottom: 3px;">Total Clicks: 0</div>
-                <div id="stat-earned" style="font-size: 0.8rem; margin-bottom: 3px;">Lifetime LOC: 0</div>
-                <div id="stat-split" style="font-size: 0.8rem; margin-bottom: 3px;">Manual: 0 | Passive: 0</div>
-                <div id="stat-time" style="font-size: 0.8rem; margin-bottom: 8px;">Session Time: 0s</div>
-                
-                <div class="action-grid">
-                    <button class="action-btn btn-save" id="btn-save" style="text-align: center;">💾 Local Save</button>
-                    <button class="action-btn btn-load" id="btn-load" style="text-align: center;">📂 Local Load</button>
-                    <button class="action-btn btn-reset" id="btn-reset" style="text-align: center;">⚠️ Reset</button>
+        <!-- SETTINGS TAB -->
+        <div id="settings" class="tab-content">
+            <h3>Player Profile & Settings</h3>
+            <div style="margin-top: 15px;">
+                <label style="display: block; font-size: 0.85rem; color: var(--text-muted);">Change Username:</label>
+                <div class="input-group">
+                    <input type="text" id="username-input" placeholder="Enter username...">
+                    <button class="btn" onclick="updateUsername()">Save Username</button>
                 </div>
             </div>
-
-            <!-- REBIRTH SYSTEM -->
-            <div class="section-title rebirth-title">-- Rebirth System --</div>
-            <div class="panel">
-                <div id="rebirth-count" style="color: var(--accent-purple); font-weight: bold; font-size: 0.85rem; margin-bottom: 6px;">
-                    Rebirths: 0 (1.0x Production)
-                </div>
-                <button class="action-btn" id="rebirth-btn" style="background-color: var(--accent-purple); color: var(--dark-panel); font-weight: bold; text-align: center;">
-                    Rebirth<br>Cost: 1,000,000,000 Lifetime LOC
-                </button>
+            <hr style="border-color: var(--border-color); margin: 20px 0;">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" style="background: var(--accent-red); color: #fff;" onclick="resetGame()">Reset Local Game</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- API KEYS ---
-        const DREAMLO_PUBLIC = "6aa2b76c8f40bb15a86e2999";
-        const DREAMLO_PRIVATE = "gbqDR69yDEuPvwbCTdYE6QNQmSIFAK60mv23tKMLJwjw";
-        const DREAMLO_HTTP_BASE = "http://www.dreamlo.com/lb/";
+        // --- CONFIGURATION ---
+        const DREAMLO_PUBLIC = "66b027268f40bb1108575f63";
+        // Public/Private endpoints
+        const DREAMLO_HTTPS_BASE = "https://www.dreamlo.com/lb/";
 
         // --- GAME STATE ---
         let state = {
-            username: "",
-            user_pin: "",
-            lines_of_code: 0,
-            click_power: 1,
-            loc_per_sec: 0,
-            rebirths: 0,
-            total_clicks: 0,
-            total_loc_earned: 0,
-            manual_loc_earned: 0,
-            passive_loc_earned: 0,
-            start_time: Date.now(),
-            active_button_idx: 0
+            username: localStorage.getItem("clicker_user") || "Coder_" + Math.floor(1000 + Math.random() * 9000),
+            loc: 0,
+            totalLoc: 0,
+            clicks: 0,
+            cps: 0,
+            clickPower: 1,
+            upgrades: {
+                autoClicker: 0,
+                scriptKid: 0,
+                juniorDev: 0,
+                aiAssistant: 0,
+                serverFarm: 0,
+                quantumRig: 0
+            }
         };
 
-        const button_upgrades = [
-            { name: "Default Geiger", cost: 0, power_mult: 1, img: "geiger.png", owned: true },
-            { name: "Blue Geiger (Sad)", cost: 5000, power_mult: 2, img: "SADGEIGER.png", owned: false },
-            { name: "Red Geiger (Angy)", cost: 250000, power_mult: 5, img: "ANGYGEIGER.png", owned: false },
-            { name: "Yellow Geiger (Juandice)", cost: 10000000, power_mult: 15, img: "JuandiceGeiger.png", owned: false },
-            { name: "Laser Red Geiger", cost: 500000000, power_mult: 50, img: "ANGYGEIGER.png", owned: false },
-            { name: "Green Geiger", cost: 25000000000, power_mult: 250, img: "GreenGeiger.png", owned: false }
-        ];
+        const UPGRADE_DATA = {
+            autoClicker: { name: "Auto Clicker", baseCost: 15, cps: 0.5, desc: "Automatically clicks once every 2 seconds." },
+            scriptKid: { name: "Script Kiddie", baseCost: 100, cps: 4, desc: "Copies StackOverflow answers." },
+            juniorDev: { name: "Junior Developer", baseCost: 1100, cps: 32, desc: "Writes code for coffee." },
+            aiAssistant: { name: "AI Copilot", baseCost: 12000, cps: 260, desc: "Generates boilerplate instantly." },
+            serverFarm: { name: "Server Farm", baseCost: 130000, cps: 1400, desc: "Runs parallel compilation threads." },
+            quantumRig: { name: "Quantum Rig", baseCost: 1400000, cps: 7800, desc: "Computes all possible code states." }
+        };
 
-        const upgrade_list = [
-            ["Ergonomic Mouse", 15, "click", 1],
-            ["Mechanical Keyboard", 50, "click", 3],
-            ["Hire Junior Dev", 100, "auto", 1],
-            ["Coffee Machine", 250, "click", 8],
-            ["Dual Monitors", 500, "auto", 5],
-            ["Stack Overflow Sub", 1000, "click", 20],
-            ["Hire Mid-Level Dev", 2500, "auto", 15],
-            ["IDE Dark Theme", 5000, "click", 50],
-            ["Standing Desk", 10000, "auto", 40],
-            ["Ultrawide Monitor", 20000, "click", 120],
-            ["Hire Senior Dev", 40000, "auto", 100],
-            ["Energy Drink Fridge", 75000, "click", 300],
-            ["Git Automation Bot", 120000, "auto", 250],
-            ["Switch Lube Kit", 200000, "click", 700],
-            ["Hire Lead Architect", 350000, "auto", 600],
-            ["Fiber Optic Internet", 500000, "click", 1500],
-            ["Cloud Server Cluster", 800000, "auto", 1200],
-            ["Custom Keycaps", 1200000, "click", 3000],
-            ["AI Copilot Sub", 2000000, "auto", 2500],
-            ["Triple Monitor Arm", 3500000, "click", 7000],
-            ["DevOps Specialist", 5000000, "auto", 5000],
-            ["Herman Miller Chair", 8000000, "click", 12000],
-            ["Local LLM Server", 12000000, "auto", 10000],
-            ["Stream Deck Macro Pad", 18000000, "click", 25000],
-            ["DBA Specialist", 25000000, "auto", 20000],
-            ["Cold Brew Keg", 40000000, "click", 50000],
-            ["Kubernetes Cluster", 60000000, "auto", 45000],
-            ["Trackball Mouse", 90000000, "click", 100000],
-            ["Security Auditor", 130000000, "auto", 80000],
-            ["Split Ortholinear Keys", 180000000, "click", 180000],
-            ["CI/CD Pipeline Rig", 250000000, "auto", 150000],
-            ["ANC Headphones", 350000000, "click", 300000],
-            ["Data Center Rack", 500000000, "auto", 400000],
-            ["Custom Solder PCB", 750000000, "click", 650000],
-            ["AI Research Team", 1000000000, "auto", 800000],
-            ["USB Foot Pedal", 1500000000, "click", 1200000],
-            ["Dedicated Server Farm", 2200000000, "auto", 1600000],
-            ["EE Breadboard Kit", 3200000000, "click", 2500000],
-            ["Quantum Compiler", 4500000000, "auto", 3500000],
-            ["Neural BCI Unit", 6500000000, "click", 5000000],
-            ["Neural Cluster Rig", 9000000000, "auto", 7000000],
-            ["Cybernetic Hands", 13000000000, "click", 10000000],
-            ["Satellite Data Relay", 18000000000, "auto", 14000000],
-            ["Sub-light Fiber Link", 25000000000, "click", 20000000],
-            ["Dyson Swarm Node", 35000000000, "auto", 28000000],
-            ["Quantum Key Matrix", 50000000000, "click", 40000000],
-            ["AGI Coding Agent", 75000000000, "auto", 60000000],
-            ["Mind-Upload Station", 100000000000, "click", 90000000],
-            ["Galactic Server Mesh", 150000000000, "auto", 130000000],
-            ["Universal Code Matrix", 250000000000, "click", 200000000]
-        ];
-
-        let upgrades = upgrade_list.map(([name, cost, type, power], idx) => ({
-            name, cost, base_cost: cost, type, power, count: 0, unlocked: idx === 0
-        }));
-
-        const achievements = [
-            { name: "Hello World", desc: "Write 1 LOC", req: 1, done: false },
-            { name: "Script Kiddie", desc: "Write 1,000 LOC", req: 1000, done: false },
-            { name: "Junior Developer", desc: "Write 50,000 LOC", req: 50000, done: false },
-            { name: "Tech Enterprise", desc: "Write 1,000,000 LOC", req: 1000000, done: false },
-            { name: "Senior Staff Engineer", desc: "Write 100,000,000 LOC", req: 100000000, done: false },
-            { name: "Unicorn Startup", desc: "Write 10,000,000,000 LOC", req: 10000000000, done: false },
-            { name: "Software Singularity", desc: "Write 1,000,000,000,000 LOC", req: 1000000000000, done: false },
-            { name: "Butterfingers", desc: "Click 10 times", req_type: "clicks", req: 10, done: false },
-            { name: "Code Monkey", desc: "Click 500 times", req_type: "clicks", req: 500, done: false },
-            { name: "Carpal Tunnel Risk", desc: "Click 2,500 times", req_type: "clicks", req: 2500, done: false },
-            { name: "Keyboard Warrior", desc: "Click 10,000 times", req_type: "clicks", req: 10000, done: false },
-            { name: "Human Macro", desc: "Click 50,000 times", req_type: "clicks", req: 50000, done: false },
-            { name: "10x Developer", desc: "Reach 50 LOC/sec", req_type: "lps", req: 50, done: false },
-            { name: "CI/CD Pipeline", desc: "Reach 500 LOC/sec", req_type: "lps", req: 500, done: false },
-            { name: "Server Farm", desc: "Reach 10,000 LOC/sec", req_type: "lps", req: 10000, done: false },
-            { name: "Neural Overclock", desc: "Reach 250,000 LOC/sec", req_type: "lps", req: 250000, done: false },
-            { name: "AGI Swarm", desc: "Reach 5,000,000 LOC/sec", req_type: "lps", req: 5000000, done: false },
-            { name: "Galactic Computer", desc: "Reach 100,000,000 LOC/sec", req_type: "lps", req: 100000000, done: false }
-        ];
-
-        // --- HELPER FUNCTIONS ---
-        function escapeHTML(str) {
-            return String(str).replace(/[&<>"']/g, match => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;'
-            }[match]));
-        }
-
-        function formatNum(n) {
-            return Math.floor(n).toLocaleString();
-        }
-
-        function logTerminal(msg) {
-            const term = document.getElementById("terminal");
-            if (!term) return;
-            const time = new Date().toLocaleTimeString('en-US', { hour12: false });
-            term.innerHTML += `[${time}] ${msg}\n`;
-            term.scrollTop = term.scrollHeight;
-        }
-
-        // --- ADVANCED PROXY PIPELINE WITH CACHE-BUSTING ---
-        async function fetchViaProxies(httpUrl) {
-            const cbParam = (httpUrl.includes('?') ? '&' : '?') + `_cb=${Date.now()}`;
-            const cacheBustedUrl = httpUrl + cbParam;
-            const encoded = encodeURIComponent(cacheBustedUrl);
+        // --- INITIALIZATION ---
+        window.addEventListener("DOMContentLoaded", () => {
+            loadLocalSave();
+            document.getElementById("username-input").value = state.username;
+            renderUpgrades();
+            recalcCPS();
+            updateUI();
             
-            if (window.location.protocol === "http:") {
-                try {
-                    const directRes = await fetch(cacheBustedUrl, { cache: "no-store" });
-                    if (directRes.ok) return await directRes.json();
-                } catch (e) {
-                    console.warn("Direct HTTP fetch failed, trying CORS proxies...");
+            // Game loop tick every 100ms
+            let lastTick = Date.now();
+            setInterval(() => {
+                const now = Date.now();
+                const delta = (now - lastTick) / 1000;
+                lastTick = now;
+
+                if (state.cps > 0) {
+                    const gain = state.cps * delta;
+                    state.loc += gain;
+                    state.totalLoc += gain;
+                    updateUI();
                 }
-            }
+            }, 100);
 
-            const proxyStrategies = [
-                {
-                    url: `https://api.allorigins.win/get?url=${encoded}&_ts=${Date.now()}`,
-                    unwrap: async (res) => {
-                        const data = await res.json();
-                        return JSON.parse(data.contents);
-                    }
-                },
-                {
-                    url: `https://api.codetabs.com/v1/proxy?quest=${encoded}&_ts=${Date.now()}`,
-                    unwrap: async (res) => await res.json()
-                },
-                {
-                    url: `https://api.cors.lol/?url=${encoded}&_ts=${Date.now()}`,
-                    unwrap: async (res) => await res.json()
-                }
-            ];
+            // Auto-save local every 10s
+            setInterval(saveLocal, 10000);
+        });
 
-            const fetchOptions = {
-                cache: "no-store",
-                headers: {
-                    "Cache-Control": "no-cache, no-store, must-revalidate",
-                    "Pragma": "no-cache",
-                    "Expires": "0"
-                }
-            };
-
-            for (const strategy of proxyStrategies) {
-                try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-                    const response = await fetch(strategy.url, { 
-                        ...fetchOptions, 
-                        signal: controller.signal 
-                    });
-                    clearTimeout(timeoutId);
-
-                    if (response.ok) {
-                        const data = await strategy.unwrap(response);
-                        if (data) return data;
-                    }
-                } catch (err) {
-                    console.warn(`Proxy strategy failed (${strategy.url}):`, err.message);
-                }
-            }
-            throw new Error("All proxy attempts failed. Check AdBlocker/Brave Shields settings.");
+        // --- UTILITIES ---
+        function formatNum(num) {
+            if (isNaN(num) || num === null) return "0";
+            if (num >= 1e12) return (num / 1e12).toFixed(2) + " T";
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + " B";
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + " M";
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + " K";
+            return Math.floor(num).toLocaleString();
         }
 
-        async function readFromDreamlo(path) {
-            const targetUrl = `${DREAMLO_HTTP_BASE}${DREAMLO_PUBLIC}/${path}`;
-            return await fetchViaProxies(targetUrl);
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
         }
 
-        async function sendToDreamlo(path) {
-            const targetUrl = `${DREAMLO_HTTP_BASE}${DREAMLO_PRIVATE}/${path}`;
-            try {
-                await fetchViaProxies(targetUrl);
-                return true;
-            } catch (e) {
-                console.error("Dreamlo write error:", e);
-                return false;
-            }
-        }
-
-        // --- TAB SWITCHER FUNCTION ---
-        function switchTab(tabId, btn) {
+        function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             
             document.getElementById(tabId).classList.add('active');
-            if (btn) btn.classList.add('active');
-        }
+            document.getElementById('btn-tab-' + tabId).classList.add('active');
 
-        // --- INSTANT CLOUD ACCOUNT SYSTEM ---
-        function handleLogin() {
-            const userInp = document.getElementById("acc-username").value.trim().replace(/[^a-zA-Z0-9_]/g, '');
-            const pinInp = document.getElementById("acc-pin").value.trim();
-
-            if (!userInp || userInp.length < 3) {
-                alert("Username must be at least 3 alphanumeric characters.");
-                return;
-            }
-            if (!pinInp || pinInp.length < 4) {
-                alert("PIN must be at least 4 digits.");
-                return;
-            }
-
-            state.username = userInp;
-            state.user_pin = pinInp;
-
-            logTerminal(`Logged in as '${state.username}'...`);
-            updateAccountUI();
-            
-            cloudLoadGame(true);
-        }
-
-        function handleLogout() {
-            logTerminal(`Logged out of account '${state.username}'.`);
-            state.username = "";
-            state.user_pin = "";
-            updateAccountUI();
-            saveGame(true);
-        }
-
-        function updateAccountUI() {
-            const loggedOutDiv = document.getElementById("account-logged-out");
-            const loggedInDiv = document.getElementById("account-logged-in");
-            const userDisp = document.getElementById("user-display-name");
-
-            if (state.username) {
-                loggedOutDiv.style.display = "none";
-                loggedInDiv.style.display = "block";
-                userDisp.textContent = state.username;
-            } else {
-                loggedOutDiv.style.display = "block";
-                loggedInDiv.style.display = "none";
-            }
-        }
-
-        // --- CLOUD SAVE (Pushes state AND score to leaderboard) ---
-        function cloudSaveGame(silent = false) {
-            if (!state.username || !state.user_pin) return;
-
-            const syncStatus = document.getElementById("cloud-sync-status");
-            if (syncStatus) syncStatus.textContent = "Status: Syncing to cloud...";
-
-            const payload = {
-                state,
-                button_upgrades: button_upgrades.map(b => b.owned),
-                upgrades: upgrades.map(u => ({ count: u.count, cost: u.cost, unlocked: u.unlocked })),
-                achievements: achievements.map(a => a.done),
-                last_updated: Date.now()
-            };
-
-            let dataStr = btoa(JSON.stringify(payload))
-                .replace(/\+/g, '-')
-                .replace(/\//g, '_')
-                .replace(/=+$/, '');
-
-            const path = `add-pipe/${encodeURIComponent(state.username)}/${state.total_loc_earned}/0/${dataStr}`;
-
-            sendToDreamlo(path)
-                .then(() => {
-                    if (syncStatus) syncStatus.textContent = `Status: Cloud Synced (${new Date().toLocaleTimeString()})`;
-                    if (!silent) logTerminal("☁️ Saved game and updated score to Cloud!");
-                    saveGame(true);
-                    loadGlobalLeaderboard();
-                })
-                .catch(() => {
-                    if (syncStatus) syncStatus.textContent = "Status: Cloud Sync Failed";
-                    if (!silent) logTerminal("❌ Cloud save failed. Saved locally.");
-                    saveGame(true);
-                });
-        }
-
-        // --- CLOUD LOAD (Restores save AND submits loaded score) ---
-        function cloudLoadGame(silent = false) {
-            if (!state.username || !state.user_pin) return;
-
-            readFromDreamlo("json")
-                .then(data => {
-                    const leaderboard = data && data.dreamlo ? data.dreamlo.leaderboard : null;
-                    if (!leaderboard || !leaderboard.entry) {
-                        if (!silent) logTerminal("New cloud profile initialized!");
-                        cloudSaveGame(true);
-                        return;
-                    }
-
-                    let entries = leaderboard.entry;
-                    if (!Array.isArray(entries)) entries = [entries];
-
-                    const match = entries.find(e => e.name && e.name.toLowerCase() === state.username.toLowerCase());
-                    if (match && match.text) {
-                        try {
-                            let base64 = match.text.replace(/-/g, '+').replace(/_/g, '/');
-                            while (base64.length % 4) base64 += '=';
-
-                            const decoded = JSON.parse(atob(base64));
-                            Object.assign(state, decoded.state);
-
-                            if (decoded.button_upgrades) {
-                                decoded.button_upgrades.forEach((owned, idx) => {
-                                    if (button_upgrades[idx]) button_upgrades[idx].owned = owned;
-                                });
-                            }
-                            if (decoded.upgrades) {
-                                decoded.upgrades.forEach((u, idx) => {
-                                    if (upgrades[idx]) {
-                                        upgrades[idx].count = u.count;
-                                        upgrades[idx].cost = u.cost;
-                                        upgrades[idx].unlocked = u.unlocked;
-                                    }
-                                });
-                            }
-                            if (decoded.achievements) {
-                                decoded.achievements.forEach((done, idx) => {
-                                    if (achievements[idx]) achievements[idx].done = done;
-                                });
-                            }
-
-                            updateActiveButtonImage();
-                            updateUI();
-                            if (!silent) logTerminal(`☁️ Loaded save file for '${state.username}' from Cloud!`);
-
-                            // Force immediate score submission so leaderboard refresh shows updated total
-                            submitScoreAndRefresh(true);
-                        } catch (e) {
-                            if (!silent) logTerminal("Cloud profile formatted. Created new cloud save!");
-                            cloudSaveGame(true);
-                        }
-                    } else {
-                        if (!silent) logTerminal("New account initialized! Saving to cloud...");
-                        cloudSaveGame(true);
-                    }
-                })
-                .catch(() => {
-                    if (!silent) logTerminal("Failed to reach cloud servers.");
-                });
-        }
-
-        document.getElementById("btn-cloud-login").addEventListener("click", handleLogin);
-        document.getElementById("btn-cloud-logout").addEventListener("click", handleLogout);
-        document.getElementById("btn-cloud-save").addEventListener("click", () => cloudSaveGame(false));
-        document.getElementById("btn-cloud-load").addEventListener("click", () => cloudLoadGame(false));
-
-        // --- GLOBAL LEADERBOARD ---
-        function submitScoreAndRefresh(silent = false) {
-            if (!state.username) {
+            if (tabId === 'leaderboard') {
                 loadGlobalLeaderboard();
-                return;
             }
-            const name = state.username;
-            const score = state.total_loc_earned;
+        }
 
-            sendToDreamlo(`add/${encodeURIComponent(name)}/${score}`)
-                .then(() => {
-                    if (!silent) logTerminal(`Synced rank for '${name}' (${formatNum(score)} LOC)!`);
-                    setTimeout(() => loadGlobalLeaderboard(), 500);
-                })
-                .catch(() => loadGlobalLeaderboard());
+        // --- CORE GAMEPLAY ---
+        function handleClick(e) {
+            state.loc += state.clickPower;
+            state.totalLoc += state.clickPower;
+            state.clicks++;
+            
+            spawnFloatingText(e, `+${state.clickPower} LOC`);
+            updateUI();
+        }
+
+        function spawnFloatingText(e, text) {
+            const el = document.createElement('div');
+            el.className = 'floating-text';
+            el.textContent = text;
+            
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX || (rect.left + rect.width / 2);
+            const y = e.clientY || (rect.top + rect.height / 2);
+            
+            el.style.left = `${x - 10}px`;
+            el.style.top = `${y - 20}px`;
+            
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        function recalcCPS() {
+            let totalCps = 0;
+            Object.keys(UPGRADE_DATA).forEach(key => {
+                totalCps += (state.upgrades[key] || 0) * UPGRADE_DATA[key].cps;
+            });
+            state.cps = totalCps;
+        }
+
+        function getUpgradeCost(key) {
+            const base = UPGRADE_DATA[key].baseCost;
+            const count = state.upgrades[key] || 0;
+            return Math.floor(base * Math.pow(1.15, count));
+        }
+
+        function buyUpgrade(key) {
+            const cost = getUpgradeCost(key);
+            if (state.loc >= cost) {
+                state.loc -= cost;
+                state.upgrades[key] = (state.upgrades[key] || 0) + 1;
+                recalcCPS();
+                renderUpgrades();
+                updateUI();
+                saveLocal();
+            }
+        }
+
+        function renderUpgrades() {
+            const container = document.getElementById("upgrades-container");
+            container.innerHTML = "";
+
+            Object.keys(UPGRADE_DATA).forEach(key => {
+                const item = UPGRADE_DATA[key];
+                const count = state.upgrades[key] || 0;
+                const cost = getUpgradeCost(key);
+
+                const card = document.createElement("div");
+                card.className = "upgrade-card";
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h4>${item.name}</h4>
+                        <span style="font-weight:bold; color:var(--accent-purple);">x${count}</span>
+                    </div>
+                    <p>${item.desc}</p>
+                    <div style="font-size:0.8rem; color:var(--accent-cyan);">+${item.cps} CPS each</div>
+                    <button class="btn ${state.loc >= cost ? 'btn-green' : ''}" onclick="buyUpgrade('${key}')">
+                        Buy (${formatNum(cost)} LOC)
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateUI() {
+            document.getElementById("loc-display").textContent = formatNum(state.loc);
+            document.getElementById("cps-display").textContent = state.cps.toFixed(1);
+        }
+
+        // --- LOCAL STORAGE ---
+        function saveLocal() {
+            localStorage.setItem("clicker_state", JSON.stringify(state));
+        }
+
+        function loadLocalSave() {
+            const saved = localStorage.getItem("clicker_state");
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    state = { ...state, ...parsed };
+                } catch(e) { console.error("Save load error", e); }
+            }
+        }
+
+        function resetGame() {
+            if (confirm("Reset all local progress?")) {
+                localStorage.removeItem("clicker_state");
+                location.reload();
+            }
+        }
+
+        function updateUsername() {
+            const val = document.getElementById("username-input").value.trim();
+            if (val) {
+                state.username = val;
+                localStorage.setItem("clicker_user", val);
+                saveLocal();
+                alert("Username updated to: " + val);
+            }
+        }
+
+        // --- PACKING GAME STATE FOR CLOUD BACKUP ---
+        function packGameState() {
+            const minState = { l: Math.floor(state.loc), tl: Math.floor(state.totalLoc), c: state.clicks, u: state.upgrades };
+            return btoa(JSON.stringify(minState));
+        }
+
+        function unpackGameState(base64Str) {
+            try {
+                const data = JSON.parse(atob(base64Str));
+                state.loc = data.l || 0;
+                state.totalLoc = data.tl || 0;
+                state.clicks = data.c || 0;
+                if (data.u) state.upgrades = { ...state.upgrades, ...data.u };
+                recalcCPS();
+                renderUpgrades();
+                updateUI();
+                saveLocal();
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        window.cloudLoadFromEntry = function(base64Data) {
+            if (confirm("Overwrite current save with this cloud save?")) {
+                if (unpackGameState(base64Data)) alert("Cloud state loaded successfully!");
+                else alert("Failed to unpack save data.");
+            }
+        };
+
+        // --- ULTRA-RELIABLE LEADERBOARD SYSTEM ---
+        
+        // Dynamic fetcher that cycles direct HTTPS, JSONP, and proxies
+        async function fetchLeaderboardData() {
+            const publicCode = DREAMLO_PUBLIC;
+            const cbTime = Date.now();
+
+            // Method 1: Direct HTTPS Fetch
+            try {
+                const res = await fetch(`${DREAMLO_HTTPS_BASE}${publicCode}/json?_cb=${cbTime}`, { cache: "no-store" });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.dreamlo) return data.dreamlo.leaderboard;
+                }
+            } catch (e) {
+                console.warn("Direct HTTPS fetch failed, falling back to JSONP...", e);
+            }
+
+            // Method 2: JSONP Script Injection (Completely immune to CORS & AdBlock domain filters)
+            try {
+                const jsonpData = await new Promise((resolve, reject) => {
+                    const callbackName = 'dreamloCb_' + Math.random().toString(36).substring(2, 9);
+                    const script = document.createElement('script');
+
+                    const timeout = setTimeout(() => {
+                        cleanup();
+                        reject(new Error("JSONP Timeout"));
+                    }, 6000);
+
+                    function cleanup() {
+                        clearTimeout(timeout);
+                        if (script.parentNode) script.parentNode.removeChild(script);
+                        delete window[callbackName];
+                        delete window.dreamloDataCallback;
+                    }
+
+                    window[callbackName] = window.dreamloDataCallback = function(data) {
+                        cleanup();
+                        resolve(data);
+                    };
+
+                    script.src = `${DREAMLO_HTTPS_BASE}${publicCode}/json-in-script?callback=${callbackName}&_cb=${cbTime}`;
+                    script.onerror = () => { cleanup(); reject(new Error("JSONP Script Load Error")); };
+                    document.body.appendChild(script);
+                });
+
+                if (jsonpData && jsonpData.dreamlo) {
+                    return jsonpData.dreamlo.leaderboard;
+                }
+            } catch (e) {
+                console.warn("JSONP fetch failed, trying CORS proxies...", e);
+            }
+
+            // Method 3: CORS Proxy Fallbacks
+            const proxyUrls = [
+                `https://corsproxy.io/?https://www.dreamlo.com/lb/${publicCode}/json?_cb=${cbTime}`,
+                `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://www.dreamlo.com/lb/${publicCode}/json?_cb=${cbTime}`)}`
+            ];
+
+            for (const pUrl of proxyUrls) {
+                try {
+                    const res = await fetch(pUrl);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.dreamlo) return data.dreamlo.leaderboard;
+                    }
+                } catch (err) { /* ignore and try next */ }
+            }
+
+            throw new Error("All leaderboard fetch channels failed.");
         }
 
         async function loadGlobalLeaderboard() {
             const listEl = document.getElementById("leaderboard-list");
             const rankDisplay = document.getElementById("user-rank-display");
-            if (!listEl) return;
+            const statusEl = document.getElementById("leaderboard-status");
 
-            listEl.innerHTML = `<div style="color: #a6adc8; font-style: italic; text-align: center; padding: 20px 0;">Loading ranks...</div>`;
+            if (!listEl) return;
+            listEl.innerHTML = `<div style="color: var(--text-muted); font-style: italic; text-align: center; padding: 20px 0;">Loading ranks...</div>`;
+            if (statusEl) statusEl.textContent = "Connecting...";
 
             try {
-                const data = await readFromDreamlo("json");
-                
-                const leaderboard = data && data.dreamlo ? data.dreamlo.leaderboard : null;
+                const leaderboard = await fetchLeaderboardData();
+
                 if (!leaderboard || !leaderboard.entry) {
-                    listEl.innerHTML = `<div style="color: #a6adc8; font-style: italic; text-align: center; padding: 20px 0;">No high scores saved yet! Be the first!</div>`;
+                    listEl.innerHTML = `<div style="color: var(--text-muted); font-style: italic; text-align: center; padding: 20px 0;">No high scores recorded yet! Sync yours first!</div>`;
                     if (rankDisplay) rankDisplay.textContent = "Unranked";
+                    if (statusEl) statusEl.textContent = "Online (0 entries)";
                     return;
                 }
 
@@ -868,354 +694,72 @@
                 if (rankDisplay) rankDisplay.textContent = userRank;
 
                 listEl.innerHTML = "";
-                entries.slice(0, 10).forEach((entry, idx) => {
+                entries.slice(0, 15).forEach((entry, idx) => {
                     const row = document.createElement("div");
                     row.className = "leaderboard-row";
                     const isCurrentUser = state.username && (entry.name && entry.name.toLowerCase() === state.username.toLowerCase());
-                    const nameStyle = isCurrentUser ? "color: var(--accent-cyan); font-weight: bold;" : "";
+                    const nameStyle = isCurrentUser ? "color: var(--accent-green); font-weight: bold;" : "";
                     const safeName = escapeHTML(entry.name || 'Anonymous');
                     const safeScore = formatNum(parseInt(entry.score || 0));
 
                     row.innerHTML = `
-                        <span><span class="leaderboard-rank">#${idx + 1}</span><b style="${nameStyle}">${safeName}</b>${isCurrentUser ? ' (You)' : ''}</span>
-                        <span class="leaderboard-score">${safeScore} LOC</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="leaderboard-rank">#${idx + 1}</span>
+                            <span style="${nameStyle}">${safeName} ${isCurrentUser ? '<span class="you-badge">You</span>' : ''}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="leaderboard-score">${safeScore} LOC</span>
+                            ${entry.text ? `<button class="btn-xs" onclick="cloudLoadFromEntry('${entry.text}')" title="Restore save file from cloud">Load Save</button>` : ''}
+                        </div>
                     `;
                     listEl.appendChild(row);
                 });
+
+                if (statusEl) statusEl.textContent = `Connected (${entries.length} scores)`;
             } catch (err) {
                 console.error("Leaderboard Error:", err);
                 listEl.innerHTML = `
-                    <div style="color: #f38ba8; text-align: center; padding: 10px 0; font-size: 0.8rem;">
-                        ❌ Failed to fetch ranks.<br>
-                        <small style="color: #a6adc8; font-size: 0.7rem;">If you use AdBlock / Brave Shields, try disabling it for this site!</small>
+                    <div style="color: var(--accent-red); text-align: center; padding: 15px; background: rgba(243,139,168,0.1); border-radius: 8px;">
+                        ❌ <b>Failed to fetch ranks.</b><br>
+                        <small style="color: var(--text-muted); display: block; margin-top: 5px;">
+                            Unable to establish connection to leaderboard API. Please click "Refresh Ranks".
+                        </small>
                     </div>`;
+                if (statusEl) statusEl.textContent = "Error";
             }
         }
 
-        document.getElementById("btn-refresh-lb").addEventListener("click", loadGlobalLeaderboard);
-
-        // --- GAME LOGIC ---
-        function getRebirthMultiplier() {
-            return 1.0 + (state.rebirths * 1.5);
-        }
-
-        function getRebirthCost() {
-            return 1000000000 * Math.pow(10, state.rebirths);
-        }
-
-        function getEffectiveClickPower() {
-            const skinMult = button_upgrades[state.active_button_idx].power_mult;
-            return Math.floor(state.click_power * skinMult * getRebirthMultiplier());
-        }
-
-        function updateActiveButtonImage() {
-            const activeSkin = button_upgrades[state.active_button_idx].img;
-            document.getElementById("click-btn-img").src = activeSkin;
-        }
-
-        // --- CORE UI RENDERING ---
-        function renderSkins() {
-            const container = document.getElementById("skins-container");
-            container.innerHTML = "";
-            button_upgrades.forEach((skin, idx) => {
-                const btn = document.createElement("button");
-                btn.className = "action-btn";
-                const isActive = state.active_button_idx === idx;
-                
-                if (skin.owned) {
-                    btn.textContent = `${skin.name} (${skin.power_mult}x) [${isActive ? "EQUIPPED" : "EQUIP"}]`;
-                    if (isActive) btn.classList.add("equipped");
-                    btn.onclick = () => {
-                        state.active_button_idx = idx;
-                        updateActiveButtonImage();
-                        logTerminal(`Equipped Button Skin: ${skin.name}`);
-                        updateUI();
-                    };
-                } else {
-                    btn.textContent = `${skin.name} (${skin.power_mult}x) Cost: ${formatNum(skin.cost)} LOC`;
-                    btn.disabled = state.lines_of_code < skin.cost;
-                    btn.onclick = () => {
-                        if (state.lines_of_code >= skin.cost) {
-                            state.lines_of_code -= skin.cost;
-                            skin.owned = true;
-                            state.active_button_idx = idx;
-                            updateActiveButtonImage();
-                            logTerminal(`Purchased Button Skin: ${skin.name}`);
-                            updateUI();
-                        }
-                    };
-                }
-                container.appendChild(btn);
-            });
-        }
-
-        function renderShop() {
-            const container = document.getElementById("shop-container");
-            container.innerHTML = "";
-            upgrades.forEach((item, idx) => {
-                if (!item.unlocked) return;
-
-                const boostedPwr = Math.floor(item.power * getRebirthMultiplier());
-                const effect = item.type === "click" ? `+${formatNum(boostedPwr)} click` : `+${formatNum(boostedPwr)}/sec`;
-                
-                const btn = document.createElement("button");
-                btn.className = "action-btn";
-                btn.innerHTML = `${idx+1}. ${item.name} (${effect})<br>Cost: ${formatNum(item.cost)} LOC | Owned: ${item.count}`;
-                btn.disabled = state.lines_of_code < item.cost;
-                btn.onclick = () => buyUpgrade(idx);
-
-                container.appendChild(btn);
-            });
-        }
-
-        function renderFacilities() {
-            const container = document.getElementById("facilities-container");
-            const ownedItems = upgrades.filter(u => u.count > 0);
-
-            if (ownedItems.length === 0) {
-                container.innerHTML = `
-                    <div style="color: #585b70; font-style: italic; text-align: center; padding: 40px 0;">
-                        No facilities built yet.<br>Purchase items from the shop to view them here!
-                    </div>`;
-                return;
-            }
-
-            container.innerHTML = "";
-            ownedItems.forEach(item => {
-                const row = document.createElement("div");
-                row.className = "facility-row";
-                
-                const title = document.createElement("div");
-                title.className = "facility-title";
-                title.textContent = `${item.name} (x${item.count})`;
-                
-                const icons = document.createElement("div");
-                icons.className = "facility-icons";
-                const displayCount = Math.min(item.count, 12);
-                for (let i = 0; i < displayCount; i++) {
-                    const iconImg = document.createElement("img");
-                    iconImg.className = "facility-icon-img";
-                    iconImg.src = "geiger.png";
-                    iconImg.alt = item.name;
-                    icons.appendChild(iconImg);
-                }
-
-                row.appendChild(title);
-                row.appendChild(icons);
-                container.appendChild(row);
-            });
-        }
-
-        function renderAchievements() {
-            const container = document.getElementById("tab-achievements");
-            container.innerHTML = "";
-            achievements.forEach(ach => {
-                const div = document.createElement("div");
-                div.className = `achievement-item ${ach.done ? 'unlocked' : ''}`;
-                div.textContent = `${ach.done ? '✅' : '🔒'} ${ach.name}: ${ach.desc}`;
-                container.appendChild(div);
-            });
-        }
-
-        function updateUI() {
-            document.getElementById("score-label").textContent = `Lines of Code: ${formatNum(state.lines_of_code)}`;
-            document.getElementById("stats-label").textContent = `Click Power: ${formatNum(getEffectiveClickPower())} | LOC/sec: ${formatNum(state.loc_per_sec * getRebirthMultiplier())}`;
+        async function saveGlobalScore(score, textData = "") {
+            if (!state.username || state.username.trim() === "") return;
             
-            document.getElementById("stat-clicks").textContent = `Total Clicks: ${formatNum(state.total_clicks)}`;
-            document.getElementById("stat-earned").textContent = `Lifetime LOC: ${formatNum(state.total_loc_earned)}`;
-            document.getElementById("stat-split").textContent = `Manual: ${formatNum(state.manual_loc_earned)} | Passive: ${formatNum(state.passive_loc_earned)}`;
+            const cleanUser = encodeURIComponent(state.username.trim());
+            const cleanScore = Math.floor(score);
+            const cleanText = encodeURIComponent(textData);
             
-            const elapsed = Math.floor((Date.now() - state.start_time) / 1000);
-            document.getElementById("stat-time").textContent = `Session Time: ${elapsed}s`;
-
-            const rebirthCost = getRebirthCost();
-            document.getElementById("rebirth-count").textContent = `Rebirths: ${state.rebirths} (${getRebirthMultiplier().toFixed(1)}x Production)`;
-            document.getElementById("rebirth-btn").innerHTML = `Rebirth<br>Cost: ${formatNum(rebirthCost)} Lifetime LOC`;
-            document.getElementById("rebirth-btn").disabled = state.total_loc_earned < rebirthCost;
-
-            checkAchievements();
-            renderSkins();
-            renderShop();
-            renderFacilities();
-        }
-
-        // --- GAMEPLAY ACTIONS ---
-        function buyUpgrade(idx) {
-            const item = upgrades[idx];
-            if (state.lines_of_code >= item.cost) {
-                state.lines_of_code -= item.cost;
-                item.count++;
-
-                if (item.type === "click") {
-                    state.click_power += item.power;
-                } else {
-                    state.loc_per_sec += item.power;
-                }
-
-                logTerminal(`Purchased: ${item.name} (Level ${item.count})`);
-                item.cost = Math.floor(item.cost * 1.45);
-
-                if (idx + 1 < upgrades.length) {
-                    upgrades[idx + 1].unlocked = true;
-                }
-
-                updateUI();
-            }
-        }
-
-        document.getElementById("click-btn").addEventListener("click", (e) => {
-            const earned = getEffectiveClickPower();
-            state.lines_of_code += earned;
-            state.total_loc_earned += earned;
-            state.manual_loc_earned += earned;
-            state.total_clicks++;
-
-            const rect = document.getElementById("click-area").getBoundingClientRect();
-            const txt = document.createElement("div");
-            txt.className = "floating-text";
-            txt.textContent = `+${formatNum(earned)}`;
-            txt.style.left = `${e.clientX - rect.left - 15}px`;
-            txt.style.top = `${e.clientY - rect.top - 10}px`;
-            document.getElementById("click-area").appendChild(txt);
-            setTimeout(() => txt.remove(), 600);
-
-            if (Math.random() < 0.05) {
-                const flavorMsgs = ["Committed fix to main", "Refactored legacy loop", "Resolved merge conflict", "Passing unit tests..."];
-                logTerminal(`Action: ${flavorMsgs[Math.floor(Math.random() * flavorMsgs.length)]}`);
-            }
-
-            updateUI();
-        });
-
-        document.getElementById("rebirth-btn").addEventListener("click", () => {
-            const cost = getRebirthCost();
-            if (state.total_loc_earned >= cost) {
-                if (confirm(`Are you sure you want to Rebirth?\n\nThis resets LOC, purchases, and button skins, but gives a permanent +150% multiplier boost!`)) {
-                    state.rebirths++;
-                    state.lines_of_code = 0;
-                    state.click_power = 1;
-                    state.loc_per_sec = 0;
-                    state.active_button_idx = 0;
-
-                    button_upgrades.forEach((btn, idx) => btn.owned = idx === 0);
-                    upgrades.forEach((item, idx) => {
-                        item.count = 0;
-                        item.cost = item.base_cost;
-                        item.unlocked = idx === 0;
-                    });
-
-                    updateActiveButtonImage();
-                    logTerminal(`💥 REBIRTH PERFORMED! Multiplier upgraded to ${getRebirthMultiplier().toFixed(1)}x!`);
-                    updateUI();
-                    cloudSaveGame(true);
-                }
-            }
-        });
-
-        function checkAchievements() {
-            achievements.forEach(ach => {
-                if (!ach.done) {
-                    const reqType = ach.req_type || "loc";
-                    let unlocked = false;
-
-                    if (reqType === "loc" && state.total_loc_earned >= ach.req) unlocked = true;
-                    if (reqType === "clicks" && state.total_clicks >= ach.req) unlocked = true;
-                    if (reqType === "lps" && (state.loc_per_sec * getRebirthMultiplier()) >= ach.req) unlocked = true;
-
-                    if (unlocked) {
-                        ach.done = true;
-                        logTerminal(`ACHIEVEMENT UNLOCKED: ${ach.name}!`);
-                    }
-                }
-            });
-            renderAchievements();
-        }
-
-        // --- LOCAL SAVE / LOAD / RESET ---
-        function saveGame(silent = false) {
-            const saveData = {
-                state,
-                button_upgrades: button_upgrades.map(b => b.owned),
-                upgrades: upgrades.map(u => ({ count: u.count, cost: u.cost, unlocked: u.unlocked })),
-                achievements: achievements.map(a => a.done)
-            };
-            localStorage.setItem("geiger_clicker_save", JSON.stringify(saveData));
-            if (!silent) logTerminal("Local save state saved to browser.");
-        }
-
-        function loadGame() {
-            const raw = localStorage.getItem("geiger_clicker_save");
-            if (!raw) return;
+            // Dreamlo add-pipe endpoint URL
+            const url = `${DREAMLO_HTTPS_BASE}${DREAMLO_PUBLIC}/add-pipe/${cleanUser}/${cleanScore}/0/${cleanText}`;
+            
+            // Send request without CORS restriction issues
             try {
-                const saveData = JSON.parse(raw);
-                Object.assign(state, saveData.state);
+                await fetch(url, { mode: 'no-cors', cache: 'no-store' });
+            } catch (e) {}
 
-                if (saveData.button_upgrades) {
-                    saveData.button_upgrades.forEach((owned, idx) => {
-                        if (button_upgrades[idx]) button_upgrades[idx].owned = owned;
-                    });
-                }
-                if (saveData.upgrades) {
-                    saveData.upgrades.forEach((u, idx) => {
-                        if (upgrades[idx]) {
-                            upgrades[idx].count = u.count;
-                            upgrades[idx].cost = u.cost;
-                            upgrades[idx].unlocked = u.unlocked;
-                        }
-                    });
-                }
-                if (saveData.achievements) {
-                    saveData.achievements.forEach((done, idx) => {
-                        if (achievements[idx]) achievements[idx].done = done;
-                    });
-                }
-                updateActiveButtonImage();
-                logTerminal("Loaded local save file.");
-                updateAccountUI();
-                updateUI();
-            } catch (e) {
-                logTerminal("Failed to load local save file.");
-            }
+            // Image beacon fallback guarantees request reaches server even on local files
+            const img = new Image();
+            img.src = url + `?_cb=${Date.now()}`;
         }
 
-        function resetGame() {
-            if (confirm("Are you sure you want to reset all game progress? This action cannot be undone.")) {
-                localStorage.removeItem("geiger_clicker_save");
-                location.reload();
-            }
+        async function syncToGlobalLeaderboard() {
+            const statusEl = document.getElementById("leaderboard-status");
+            if (statusEl) statusEl.textContent = "Syncing high score...";
+            
+            const packedState = packGameState();
+            await saveGlobalScore(state.loc, packedState);
+            
+            setTimeout(() => {
+                loadGlobalLeaderboard();
+            }, 1200);
         }
-
-        document.getElementById("btn-save").addEventListener("click", () => saveGame(false));
-        document.getElementById("btn-load").addEventListener("click", loadGame);
-        document.getElementById("btn-reset").addEventListener("click", resetGame);
-
-        // --- AUTO LOOPS ---
-        setInterval(() => {
-            if (state.loc_per_sec > 0) {
-                const effectiveLPS = Math.floor(state.loc_per_sec * getRebirthMultiplier());
-                state.lines_of_code += effectiveLPS;
-                state.total_loc_earned += effectiveLPS;
-                state.passive_loc_earned += effectiveLPS;
-                updateUI();
-            }
-        }, 1000);
-
-        setInterval(() => saveGame(true), 15000);
-
-        setInterval(() => {
-            if (state.username && state.user_pin) {
-                cloudSaveGame(true);
-            }
-        }, 30000);
-
-        // --- INIT ---
-        window.onload = function() {
-            logTerminal("System initialized. Welcome to Geiger Clicker!");
-            loadGame();
-            loadGlobalLeaderboard();
-            updateActiveButtonImage();
-            updateUI();
-        };
     </script>
 </body>
 </html>
