@@ -582,36 +582,62 @@
             term.scrollTop = term.scrollHeight;
         }
 
-        // --- ROBUST PROXY PIPELINE ---
+        // --- ADVANCED PROXY PIPELINE WITH CACHE-BUSTING ---
         async function fetchViaProxies(httpUrl) {
-            const encoded = encodeURIComponent(httpUrl);
+            // Append timestamp parameter to force non-cached fetch from Dreamlo & proxy servers
+            const cbParam = (httpUrl.includes('?') ? '&' : '?') + `_cb=${Date.now()}`;
+            const cacheBustedUrl = httpUrl + cbParam;
+            const encoded = encodeURIComponent(cacheBustedUrl);
+            
+            // Direct fetch attempt if site is served over HTTP
+            if (window.location.protocol === "http:") {
+                try {
+                    const directRes = await fetch(cacheBustedUrl, { cache: "no-store" });
+                    if (directRes.ok) return await directRes.json();
+                } catch (e) {
+                    console.warn("Direct HTTP fetch failed, trying CORS proxies...");
+                }
+            }
+
             const proxyStrategies = [
                 {
-                    // AllOrigins JSON wrapper (handles HTTP safely)
-                    url: `https://api.allorigins.win/get?url=${encoded}`,
+                    // Strategy 1: AllOrigins JSON API wrapper
+                    url: `https://api.allorigins.win/get?url=${encoded}&_ts=${Date.now()}`,
                     unwrap: async (res) => {
                         const data = await res.json();
                         return JSON.parse(data.contents);
                     }
                 },
                 {
-                    // CORS.lol Proxy
-                    url: `https://api.cors.lol/?url=${encoded}`,
+                    // Strategy 2: CodeTabs Proxy
+                    url: `https://api.codetabs.com/v1/proxy?quest=${encoded}&_ts=${Date.now()}`,
                     unwrap: async (res) => await res.json()
                 },
                 {
-                    // CodeTabs Proxy
-                    url: `https://api.codetabs.com/v1/proxy?quest=${encoded}`,
+                    // Strategy 3: CORS.lol Proxy
+                    url: `https://api.cors.lol/?url=${encoded}&_ts=${Date.now()}`,
                     unwrap: async (res) => await res.json()
                 }
             ];
 
+            const fetchOptions = {
+                cache: "no-store",
+                headers: {
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Pragma": "no-cache",
+                    "Expires": "0"
+                }
+            };
+
             for (const strategy of proxyStrategies) {
                 try {
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 6000);
+                    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
 
-                    const response = await fetch(strategy.url, { signal: controller.signal });
+                    const response = await fetch(strategy.url, { 
+                        ...fetchOptions, 
+                        signal: controller.signal 
+                    });
                     clearTimeout(timeoutId);
 
                     if (response.ok) {
@@ -622,7 +648,7 @@
                     console.warn(`Proxy strategy failed (${strategy.url}):`, err.message);
                 }
             }
-            throw new Error("All CORS proxies failed to reach the server.");
+            throw new Error("All proxy attempts failed. Check AdBlocker/Brave Shields settings.");
         }
 
         async function readFromDreamlo(path) {
@@ -711,7 +737,6 @@
                 last_updated: Date.now()
             };
 
-            // URL-safe base64 encoding to prevent / slashes from breaking Dreamlo API routes
             let dataStr = btoa(JSON.stringify(payload))
                 .replace(/\+/g, '-')
                 .replace(/\//g, '_')
@@ -810,7 +835,7 @@
             sendToDreamlo(`add/${encodeURIComponent(name)}/${score}`)
                 .then(() => {
                     if (!silent) logTerminal(`Synced rank for '${name}' (${formatNum(score)} LOC)!`);
-                    loadGlobalLeaderboard();
+                    setTimeout(() => loadGlobalLeaderboard(), 500);
                 })
                 .catch(() => loadGlobalLeaderboard());
         }
@@ -820,14 +845,14 @@
             const rankDisplay = document.getElementById("user-rank-display");
             if (!listEl) return;
 
-            listEl.innerHTML = `<div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">Loading ranks...</div>`;
+            listEl.innerHTML = `<div style="color: #a6adc8; font-style: italic; text-align: center; padding: 20px 0;">Loading ranks...</div>`;
 
             try {
                 const data = await readFromDreamlo("json");
                 
                 const leaderboard = data && data.dreamlo ? data.dreamlo.leaderboard : null;
                 if (!leaderboard || !leaderboard.entry) {
-                    listEl.innerHTML = `<div style="color: #585b70; font-style: italic; text-align: center; padding: 20px 0;">No high scores saved yet! Be the first!</div>`;
+                    listEl.innerHTML = `<div style="color: #a6adc8; font-style: italic; text-align: center; padding: 20px 0;">No high scores saved yet! Be the first!</div>`;
                     if (rankDisplay) rankDisplay.textContent = "Unranked";
                     return;
                 }
@@ -859,7 +884,11 @@
                 });
             } catch (err) {
                 console.error("Leaderboard Error:", err);
-                listEl.innerHTML = `<div style="color: #f38ba8; text-align: center; padding: 10px 0;">Failed to fetch global ranks.</div>`;
+                listEl.innerHTML = `
+                    <div style="color: #f38ba8; text-align: center; padding: 10px 0; font-size: 0.8rem;">
+                        ❌ Failed to fetch ranks.<br>
+                        <small style="color: #a6adc8; font-size: 0.7rem;">If you use AdBlock / Brave Shields, try disabling it for this site!</small>
+                    </div>`;
             }
         }
 
@@ -1161,7 +1190,6 @@
         document.getElementById("btn-reset").addEventListener("click", resetGame);
 
         // --- AUTO LOOPS ---
-        // Passive LOC loop
         setInterval(() => {
             if (state.loc_per_sec > 0) {
                 const effectiveLPS = Math.floor(state.loc_per_sec * getRebirthMultiplier());
@@ -1172,10 +1200,8 @@
             }
         }, 1000);
 
-        // Auto Save to LocalStorage every 15 seconds
         setInterval(() => saveGame(true), 15000);
 
-        // Auto Sync score & Cloud Save every 30 seconds
         setInterval(() => {
             if (state.username && state.user_pin) {
                 cloudSaveGame(true);
