@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Geiger Clicker 1.0 - Cloud Save Edition</title>
+  <title>Steyer Clicker 2.0</title>
   <style>
     :root {
       --bg-base: #1e1e2e;
@@ -15,6 +15,7 @@
       --accent-purple: #cba6f7;
       --accent-red: #f38ba8;
       --accent-yellow: #f9e2af;
+      --accent-cyan: #94e2d5;
       --subtext: #a6adc8;
       --border: #45475a;
     }
@@ -23,7 +24,7 @@
     body { background-color: var(--bg-base); color: var(--text-main); padding: 15px; }
 
     header { text-align: center; margin-bottom: 15px; position: relative; }
-    h1 { color: var(--text-main); margin-bottom: 5px; }
+    h1 { color: var(--text-main); margin-bottom: 5px; text-shadow: 0 0 8px rgba(137, 180, 250, 0.4); }
     .stat-main { font-size: 1.4rem; color: var(--accent-green); font-weight: bold; }
     .stat-sub { font-size: 0.9rem; color: var(--accent-blue); font-style: italic; }
 
@@ -37,7 +38,7 @@
     /* Clicker Area */
     #clicker-area {
       width: 320px;
-      height: 110px;
+      height: 120px;
       background: var(--bg-surface);
       border: 2px solid var(--border);
       margin: 10px auto;
@@ -47,28 +48,30 @@
       cursor: pointer;
       position: relative;
       user-select: none;
-      border-radius: 6px;
+      border-radius: 8px;
       overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
     #clicker-btn {
       width: 240px;
-      height: 80px;
+      height: 90px;
       background: var(--accent-blue);
       color: var(--bg-mantle);
       font-weight: bold;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 4px;
-      transition: transform 0.05s ease;
+      border-radius: 6px;
+      transition: transform 0.05s ease, background 0.3s ease;
       text-align: center;
-      padding: 5px;
+      padding: 8px;
     }
     #clicker-btn img {
       max-height: 100%;
       max-width: 100%;
       object-fit: contain;
       pointer-events: none;
+      filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.5));
     }
     #clicker-area:active #clicker-btn { transform: scale(0.95); }
 
@@ -78,10 +81,11 @@
       font-weight: bold;
       pointer-events: none;
       animation: floatUp 0.6s ease-out forwards;
+      text-shadow: 0 0 4px rgba(0,0,0,0.8);
     }
     @keyframes floatUp {
       0% { opacity: 1; transform: translateY(0); }
-      100% { opacity: 0; transform: translateY(-30px); }
+      100% { opacity: 0; transform: translateY(-35px); }
     }
 
     /* Grid Layout */
@@ -116,6 +120,7 @@
       text-align: left;
       cursor: pointer;
       border-radius: 4px;
+      transition: background 0.15s ease;
     }
     button.game-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     button.game-btn:hover:not(:disabled) { background: #313244; }
@@ -235,7 +240,7 @@
   <!-- TUTORIAL MODAL -->
   <div id="tutorial-overlay" class="tutorial-overlay" style="display: none;">
     <div class="tutorial-card">
-      <h3 id="tut-title">Welcome to Geiger Clicker!</h3>
+      <h3 id="tut-title">Welcome to Steyer Clicker!</h3>
       <p id="tut-desc">Step description goes here...</p>
       <div class="tut-footer">
         <span class="tut-step-indicator" id="tut-step-num">Step 1 of 5</span>
@@ -249,35 +254,35 @@
   </div>
 
   <header>
-    <h1>Geiger Clicker</h1>
-    <div class="stat-main" id="lbl-loc">Lines of Code: 0</div>
-    <div class="stat-sub" id="lbl-stats">Click Power: 1 | LOC/sec: 0</div>
+    <h1>⚛️ Steyer Clicker 2.0 ⚛️</h1>
+    <div class="stat-main" id="lbl-joules">Energy: 0 J</div>
+    <div class="stat-sub" id="lbl-stats">Click Yield: 1 J | Energy Rate: 0 J/sec</div>
     <div id="clicker-area">
       <div id="clicker-btn">
-        <img id="clicker-img" src="geiger.png" alt="Geiger">
+        <img id="clicker-img" src="geiger.png" alt="Steyer Counter">
       </div>
     </div>
     <div class="header-btns">
-      <button id="btn-open-tutorial" class="game-btn inline-btn" style="background:var(--accent-purple); color:var(--bg-mantle); font-weight:bold;">📖 How to Play (Tutorial)</button>
+      <button id="btn-open-tutorial" class="game-btn inline-btn" style="background:var(--accent-purple); color:var(--bg-mantle); font-weight:bold;">📖 Lab Protocol (Tutorial)</button>
     </div>
   </header>
 
   <div class="game-grid">
     <!-- LEFT PANEL -->
     <div class="panel">
-      <div class="panel-title">-- BUTTON SKINS & SHOP --</div>
+      <div class="panel-title">-- STEYER SKINS --</div>
       <div class="scroll-container">
         <div id="skins-container"></div>
-        <div class="panel-title" style="margin-top:10px;">-- UPGRADES --</div>
+        <div class="panel-title" style="margin-top:10px;">-- SCIENTIFIC UPGRADES --</div>
         <div id="upgrades-container"></div>
       </div>
     </div>
 
     <!-- MIDDLE PANEL -->
     <div class="panel">
-      <div class="panel-title">-- BUILT FACILITIES & DEVS --</div>
+      <div class="panel-title">-- ACTIVE EXPERIMENTS & LAB APPARATUS --</div>
       <div class="scroll-container" id="facilities-container">
-        <div style="color: var(--subtext); text-align: center; margin-top: 20px;">No facilities built yet.</div>
+        <div style="color: var(--subtext); text-align: center; margin-top: 20px;">No apparatus built yet.</div>
       </div>
     </div>
 
@@ -286,28 +291,28 @@
       <div class="panel-title">-- SYSTEM TERMINAL LOG --</div>
       <div id="terminal"></div>
 
-      <div class="panel-title">-- REBIRTH SYSTEM --</div>
+      <div class="panel-title">-- SCIENTIFIC REVOLUTION (REBIRTH) --</div>
       <div style="margin-bottom: 10px;">
         <div id="lbl-rebirth" style="font-size: 0.85rem; color: var(--accent-purple); margin-bottom: 4px;">Rebirths: 0 (1.0x Boost)</div>
-        <button id="btn-rebirth" class="game-btn" style="background: var(--accent-purple); color: var(--bg-mantle); text-align:center; font-weight:bold;">Rebirth</button>
+        <button id="btn-rebirth" class="game-btn" style="background: var(--accent-purple); color: var(--bg-mantle); text-align:center; font-weight:bold;">Paradigm Shift</button>
       </div>
 
       <div class="panel-title">-- ACCOUNT & CLOUD SAVE --</div>
       <div class="account-inputs">
-        <input type="text" id="player-name" placeholder="Username (e.g. Alex)" maxlength="12">
-        <input type="password" id="player-pin" placeholder="Secret PIN (e.g. 1234)" maxlength="8">
+        <input type="text" id="player-name" placeholder="Researcher ID (e.g. MarieCurie)" maxlength="12">
+        <input type="password" id="player-pin" placeholder="Access PIN (e.g. 1234)" maxlength="8">
       </div>
       <div class="account-actions">
-        <button id="btn-save-cloud" class="game-btn" style="background:var(--accent-green); color:var(--bg-mantle); font-weight:bold; text-align:center; margin:0;">Save Progress</button>
-        <button id="btn-load-cloud" class="game-btn" style="background:var(--accent-blue); color:var(--bg-mantle); font-weight:bold; text-align:center; margin:0;">Load Progress</button>
+        <button id="btn-save-cloud" class="game-btn" style="background:var(--accent-green); color:var(--bg-mantle); font-weight:bold; text-align:center; margin:0;">Save Data</button>
+        <button id="btn-load-cloud" class="game-btn" style="background:var(--accent-blue); color:var(--bg-mantle); font-weight:bold; text-align:center; margin:0;">Load Data</button>
       </div>
 
-      <div class="panel-title">-- DREAMLO LEADERBOARD --</div>
+      <div class="panel-title">-- GLOBAL RESEARCH LEADERBOARD --</div>
       <div class="disclaimer-banner">
-        LEADERBOARD ACTIVE: Save your progress to post your score!
+        LEADERBOARD ACTIVE: Save data to publish total Joules generated!
       </div>
       <div class="scroll-container" id="leaderboard-container">
-        <div class="lb-row"><span class="lb-name">Loading leaderboard...</span></div>
+        <div class="lb-row"><span class="lb-name">Connecting to research network...</span></div>
       </div>
     </div>
   </div>
@@ -317,65 +322,69 @@
     const DREAMLO_PRIVATE_KEY = "iRkhqJbpbkS5hYjUflu15QjJ5ZVfaIHka--OpQRIq2Fg";
 
     let gameState = {
-      loc: 0,
+      joules: 0,
       clickPower: 1,
-      locPerSec: 0,
+      joulesPerSec: 0,
       rebirths: 0,
-      totalLocEarned: 0,
+      totalJoulesEarned: 0,
       totalClicks: 0,
       activeSkinIdx: 0
     };
 
-    document.getElementById('player-name').value = localStorage.getItem('geiger_user') || '';
-    document.getElementById('player-pin').value = localStorage.getItem('geiger_pin') || '';
+    document.getElementById('player-name').value = localStorage.getItem('physica_user') || '';
+    document.getElementById('player-pin').value = localStorage.getItem('physica_pin') || '';
 
+    // --- Steyer Counter Skins & Detector Upgrades ---
     const skins = [
-      { name: "Default Geiger", img: "geiger.png", cost: 0, mult: 1, color: "#89b4fa", owned: true },
-      { name: "Sad Geiger", img: "SADGEIGER.png", cost: 5000, mult: 2, color: "#74c7ec", owned: false },
-      { name: "Angy Geiger", img: "ANGYGEIGER.png", cost: 250000, mult: 5, color: "#f38ba8", owned: false },
-      { name: "Juandice Geiger", img: "JuandiceGeiger.png", cost: 10000000, mult: 15, color: "#f9e2af", owned: false },
-      { name: "Green Geiger", img: "GreenGeiger.png", cost: 500000000, mult: 50, color: "#a6e3a1", owned: false }
+      { name: "Default Steyer", img: "geiger.png", cost: 0, mult: 1, color: "#89b4fa", owned: true },
+      { name: "Sad Steyer", img: "SADGEIER.png", cost: 5000, mult: 2, color: "#74c7ec", owned: false },
+      { name: "Angy Steyer", img: "ANGYGEIGER.png", cost: 250000, mult: 5, color: "#f38ba8", owned: false },
+      { name: "Juandice Steyer", img: "JuandiceGeiger.png", cost: 10000000, mult: 15, color: "#f9e2af", owned: false },
+      { name: "Green Steyer", img: "GreenGeiger.png", cost: 500000000, mult: 50, color: "#a6e3a1", owned: false }
     ];
 
+    // Array of upgrades across Physics, Chemistry, Biology, Geophysics, and Astrophysics
     const upgradeList = [
-      ["Ergonomic Mouse", 15, "click", 1],
-      ["Mechanical Keyboard", 50, "click", 3],
-      ["Hire Junior Dev", 100, "auto", 1],
-      ["Coffee Machine", 250, "click", 8],
-      ["Dual Monitors", 500, "auto", 5],
-      ["Hire Mid-Level Dev", 2500, "auto", 15],
-      ["Standing Desk", 10000, "auto", 40],
-      ["Hire Senior Dev", 40000, "auto", 100],
-      ["Git Automation Bot", 120000, "auto", 250],
-      ["Cloud Server Cluster", 800000, "auto", 1200],
-      ["AI Copilot Sub", 2000000, "auto", 2500]
+      ["Vernier Caliper", 15, "click", 1, "Mechanics"],
+      ["Graduate Lab Assistant", 50, "auto", 1, "General Science"],
+      ["Bunsen Burner", 100, "click", 3, "Thermodynamics / Chem"],
+      ["Petri Dish Culture", 250, "auto", 5, "Biology"],
+      ["Laser Interferometer", 500, "click", 8, "Optics / Physics"],
+      ["Superconducting Magnet", 2500, "auto", 15, "Electromagnetism"],
+      ["Seismograph Network", 10000, "auto", 40, "Geophysics"],
+      ["DNA Sequencer Array", 40000, "auto", 100, "Biophysics"],
+      ["Nuclear Fission Reactor", 120000, "auto", 250, "Nuclear Physics"],
+      ["Particle Accelerator", 800000, "auto", 1200, "Particle Physics"],
+      ["Quantum Computer Array", 2000000, "auto", 2500, "Quantum Physics"],
+      ["Deep Space Radio Array", 10000000, "auto", 8000, "Astrophysics"],
+      ["Dyson Swarm Collector", 50000000, "auto", 25000, "Cosmology"]
     ];
 
-    let upgrades = upgradeList.map(([name, cost, type, power]) => ({
-      name, cost, baseCost: cost, type, power, count: 0
+    let upgrades = upgradeList.map(([name, cost, type, power, category]) => ({
+      name, cost, baseCost: cost, type, power, category, count: 0
     }));
 
     // --- GUIDED TUTORIAL STEPS ---
     const tutorialSteps = [
       {
-        title: "1. Click the Geiger Button!",
-        desc: "Click the Geiger image button at the top of the page to start generating Lines of Code (LOC). The more you click, the more currency you earn!"
+        title: "1. Generate Joules of Energy!",
+        desc: "Click the Steyer button at the top to synthesize Joules (J). Energy is the fundamental currency of all physics and natural sciences!"
       },
       {
-        title: "2. Upgrades & Passive Income",
-        desc: "Use your earned LOC in the left panel to buy Upgrades. Items like 'Ergonomic Mouse' boost your click power, while 'Junior Devs' generate LOC automatically per second!"
+        title: "2. Scientific Upgrades & Passive Generation",
+        desc: "Use your accumulated Joules to purchase upgrades. Tools like Vernier Calipers boost your click yield, while Lab Assistants and Reactors generate passive Joules per second!"
       },
       {
-        title: "3. Unlock New Geiger Skins",
-        desc: "Save up LOC to unlock cool skins like Sad Geiger, Angy Geiger, Juandice Geiger, and Green Geiger! Higher tier skins multiply all of your click earnings."
+        title: "3. Unlock Steyer Skins",
+        desc: "Save up Joules to unlock rare Steyer variants like Sad Steyer, Angy Steyer, Juandice Steyer, and Green Steyer! Higher tier detectors multiply all click yields."
       },
       {
-        title: "4. Cloud Save & Leaderboard",
-        desc: "Type in a Username and a Secret PIN in the right panel, then hit 'Save Progress'. This safely locks your progress to your account on the online leaderboard!"
+        title: "4. Cloud Research Network & Leaderboard",
+        desc: "Enter a Researcher Username and Secret Access PIN in the right panel, then click 'Save Data' to broadcast your scientific contributions to the global leaderboard!"
       },
       {
-        title: "5. Perform Rebirths",
-        desc: "Once you accumulate enough lifetime LOC, hit 'Rebirth' to reset your progress in exchange for a massive permanent production multiplier boost!"
+        title: "5. Paradigm Shift (Rebirth)",
+        desc: "Accumulate massive lifetime energy to execute a Paradigm Shift! Reset your immediate laboratory apparatus in exchange for a permanent multiplier boost across all scientific disciplines!"
       }
     ];
 
@@ -398,7 +407,7 @@
 
     function closeTutorial() {
       document.getElementById('tutorial-overlay').style.display = 'none';
-      localStorage.setItem('geiger_tut_done', 'true');
+      localStorage.setItem('physica_tut_done', 'true');
     }
 
     document.getElementById('tut-btn-next').addEventListener('click', () => {
@@ -421,7 +430,7 @@
     document.getElementById('btn-open-tutorial').addEventListener('click', openTutorial);
 
     // Auto-open tutorial on first visit
-    if (!localStorage.getItem('geiger_tut_done')) {
+    if (!localStorage.getItem('physica_tut_done')) {
       openTutorial();
     }
 
@@ -437,9 +446,9 @@
     }
 
     function updateUI() {
-      const effectiveLps = Math.floor(gameState.locPerSec * getRebirthMultiplier());
-      document.getElementById('lbl-loc').innerText = `Lines of Code: ${gameState.loc.toLocaleString()}`;
-      document.getElementById('lbl-stats').innerText = `Click Power: ${getEffectiveClickPower().toLocaleString()} | LOC/sec: ${effectiveLps.toLocaleString()}`;
+      const effectiveLps = Math.floor(gameState.joulesPerSec * getRebirthMultiplier());
+      document.getElementById('lbl-joules').innerText = `Energy: ${gameState.joules.toLocaleString()} J`;
+      document.getElementById('lbl-stats').innerText = `Click Yield: ${getEffectiveClickPower().toLocaleString()} J | Energy Rate: ${effectiveLps.toLocaleString()} J/sec`;
 
       const skinsContainer = document.getElementById('skins-container');
       skinsContainer.innerHTML = '';
@@ -448,18 +457,18 @@
         btn.className = 'game-btn';
         if (skin.owned) {
           const isEquipped = gameState.activeSkinIdx === idx;
-          btn.innerText = `${skin.name} (${skin.mult}x) [${isEquipped ? 'EQUIPPED' : 'EQUIP'}]`;
+          btn.innerText = `${skin.name} (${skin.mult}x Yield) [${isEquipped ? 'EQUIPPED' : 'EQUIP'}]`;
           btn.disabled = isEquipped;
           btn.onclick = () => { gameState.activeSkinIdx = idx; updateSkinVisual(); updateUI(); };
         } else {
-          btn.innerText = `${skin.name} (${skin.mult}x)\nCost: ${skin.cost.toLocaleString()} LOC`;
-          btn.disabled = gameState.loc < skin.cost;
+          btn.innerText = `${skin.name} (${skin.mult}x Yield)\nCost: ${skin.cost.toLocaleString()} J`;
+          btn.disabled = gameState.joules < skin.cost;
           btn.onclick = () => {
-            if (gameState.loc >= skin.cost) {
-              gameState.loc -= skin.cost;
+            if (gameState.joules >= skin.cost) {
+              gameState.joules -= skin.cost;
               skin.owned = true;
               gameState.activeSkinIdx = idx;
-              logTerminal(`Unlocked ${skin.name}`);
+              logTerminal(`Unlocked Steyer Skin: ${skin.name}`);
               updateSkinVisual();
               updateUI();
             }
@@ -474,17 +483,17 @@
         const btn = document.createElement('button');
         btn.className = 'game-btn';
         const effPower = Math.floor(item.power * getRebirthMultiplier());
-        const effectStr = item.type === 'click' ? `+${effPower.toLocaleString()} click` : `+${effPower.toLocaleString()}/sec`;
-        btn.innerText = `${item.name} (${effectStr})\nCost: ${item.cost.toLocaleString()} | Owned: ${item.count}`;
-        btn.disabled = gameState.loc < item.cost;
+        const effectStr = item.type === 'click' ? `+${effPower.toLocaleString()} J/click` : `+${effPower.toLocaleString()} J/sec`;
+        btn.innerText = `${item.name} [${item.category}]\n${effectStr} | Cost: ${item.cost.toLocaleString()} J | Owned: ${item.count}`;
+        btn.disabled = gameState.joules < item.cost;
         btn.onclick = () => {
-          if (gameState.loc >= item.cost) {
-            gameState.loc -= item.cost;
+          if (gameState.joules >= item.cost) {
+            gameState.joules -= item.cost;
             item.count++;
             if (item.type === 'click') gameState.clickPower += item.power;
-            else gameState.locPerSec += item.power;
+            else gameState.joulesPerSec += item.power;
             item.cost = Math.floor(item.cost * 1.45);
-            logTerminal(`Purchased: ${item.name}`);
+            logTerminal(`Deployed Experiment: ${item.name}`);
             renderFacilities();
             updateUI();
           }
@@ -493,10 +502,10 @@
       });
 
       const rCost = getRebirthCost();
-      const canRebirth = gameState.totalLocEarned >= rCost;
+      const canRebirth = gameState.totalJoulesEarned >= rCost;
       document.getElementById('lbl-rebirth').innerText = `Rebirths: ${gameState.rebirths} (${getRebirthMultiplier().toFixed(1)}x Boost)`;
       const rBtn = document.getElementById('btn-rebirth');
-      rBtn.innerText = `Rebirth\nCost: ${rCost.toLocaleString()} Lifetime LOC`;
+      rBtn.innerText = `Paradigm Shift\nCost: ${rCost.toLocaleString()} Lifetime Joules`;
       rBtn.disabled = !canRebirth;
     }
 
@@ -518,24 +527,24 @@
           hasBuilding = true;
           const div = document.createElement('div');
           div.style.cssText = "background:var(--bg-mantle); padding:6px; border:1px solid var(--border); margin-bottom:5px; border-radius:4px;";
-          div.innerHTML = `<strong>${item.name}</strong> (x${item.count})`;
+          div.innerHTML = `<strong>${item.name}</strong> (${item.category}) x${item.count}`;
           container.appendChild(div);
         }
       });
-      if (!hasBuilding) container.innerHTML = '<div style="color: var(--subtext); text-align: center; margin-top: 20px;">No facilities built yet.</div>';
+      if (!hasBuilding) container.innerHTML = '<div style="color: var(--subtext); text-align: center; margin-top: 20px;">No apparatus built yet.</div>';
     }
 
     const clickerArea = document.getElementById('clicker-area');
     clickerArea.addEventListener('click', (e) => {
       const earned = getEffectiveClickPower();
-      gameState.loc += earned;
-      gameState.totalLocEarned += earned;
+      gameState.joules += earned;
+      gameState.totalJoulesEarned += earned;
       gameState.totalClicks++;
 
       const rect = clickerArea.getBoundingClientRect();
       const floatTxt = document.createElement('div');
       floatTxt.className = 'floating-text';
-      floatTxt.innerText = `+${earned.toLocaleString()}`;
+      floatTxt.innerText = `+${earned.toLocaleString()} J`;
       floatTxt.style.left = `${e.clientX - rect.left}px`;
       floatTxt.style.top = `${e.clientY - rect.top}px`;
       clickerArea.appendChild(floatTxt);
@@ -545,16 +554,16 @@
     });
 
     document.getElementById('btn-rebirth').addEventListener('click', () => {
-      if (gameState.totalLocEarned >= getRebirthCost()) {
-        if (confirm("Perform Rebirth? Reset LOC and upgrades for permanent production boost!")) {
+      if (gameState.totalJoulesEarned >= getRebirthCost()) {
+        if (confirm("Execute Paradigm Shift? Reset active experiments and apparatus in exchange for a permanent scientific production multiplier!")) {
           gameState.rebirths++;
-          gameState.loc = 0;
+          gameState.joules = 0;
           gameState.clickPower = 1;
-          gameState.locPerSec = 0;
+          gameState.joulesPerSec = 0;
           gameState.activeSkinIdx = 0;
           skins.forEach((s, idx) => s.owned = idx === 0);
           upgrades.forEach(u => { u.count = 0; u.cost = u.baseCost; });
-          logTerminal(`REBIRTH PERFORMED! New multiplier: ${getRebirthMultiplier().toFixed(1)}x`);
+          logTerminal(`PARADIGM SHIFT COMPLETED! New multiplier: ${getRebirthMultiplier().toFixed(1)}x`);
           renderFacilities();
           updateSkinVisual();
           updateUI();
@@ -563,10 +572,10 @@
     });
 
     setInterval(() => {
-      if (gameState.locPerSec > 0) {
-        const passive = Math.floor(gameState.locPerSec * getRebirthMultiplier());
-        gameState.loc += passive;
-        gameState.totalLocEarned += passive;
+      if (gameState.joulesPerSec > 0) {
+        const passive = Math.floor(gameState.joulesPerSec * getRebirthMultiplier());
+        gameState.joules += passive;
+        gameState.totalJoulesEarned += passive;
         updateUI();
       }
     }, 1000);
@@ -582,7 +591,7 @@
         lbContainer.innerHTML = '';
 
         if (!data || !data.dreamlo || !data.dreamlo.leaderboard || !data.dreamlo.leaderboard.entry) {
-          lbContainer.innerHTML = '<div class="lb-row"><span>No scores yet. Be the first!</span></div>';
+          lbContainer.innerHTML = '<div class="lb-row"><span>No data recorded yet. Be the first researcher!</span></div>';
           return [];
         }
 
@@ -592,13 +601,13 @@
         entries.forEach((entry, idx) => {
           const row = document.createElement('div');
           row.className = 'lb-row';
-          row.innerHTML = `<span class="lb-rank">#${idx + 1}</span><span class="lb-name">${entry.name}</span><span class="lb-score">${parseInt(entry.score).toLocaleString()} LOC</span>`;
+          row.innerHTML = `<span class="lb-rank">#${idx + 1}</span><span class="lb-name">${entry.name}</span><span class="lb-score">${parseInt(entry.score).toLocaleString()} J</span>`;
           lbContainer.appendChild(row);
         });
 
         return entries;
       } catch (err) {
-        logTerminal("Error fetching Dreamlo leaderboard.");
+        logTerminal("Error connecting to leaderboard network.");
         return [];
       }
     }
@@ -608,14 +617,14 @@
       const pin = document.getElementById('player-pin').value.trim();
 
       if (!user || !pin) {
-        alert("Please enter both a Username and a Secret PIN to save!");
+        alert("Please enter both a Researcher Username and an Access PIN to save data!");
         return;
       }
 
       const safeUser = encodeURIComponent(user.replace(/[^a-zA-Z0-9_-]/g, ''));
       
-      localStorage.setItem('geiger_user', user);
-      localStorage.setItem('geiger_pin', pin);
+      localStorage.setItem('physica_user', user);
+      localStorage.setItem('physica_pin', pin);
 
       const entries = await fetchDreamloScores();
       if (entries && entries.length > 0) {
@@ -625,8 +634,8 @@
             const decodedText = decodeURIComponent(atob(existing.text));
             const parsed = JSON.parse(decodedText);
             if (parsed.pin && parsed.pin !== pin) {
-              alert("ERROR: This Username is taken by another player with a different PIN!");
-              logTerminal("Save failed: Incorrect PIN for existing user.");
+              alert("ERROR: This Researcher Username is locked by another access PIN!");
+              logTerminal("Save failed: Unauthorized PIN for user.");
               return;
             }
           } catch(e){}
@@ -635,11 +644,11 @@
 
       const payload = JSON.stringify({
         pin: pin,
-        loc: gameState.loc,
+        joules: gameState.joules,
         clickPower: gameState.clickPower,
-        locPerSec: gameState.locPerSec,
+        joulesPerSec: gameState.joulesPerSec,
         rebirths: gameState.rebirths,
-        totalLocEarned: gameState.totalLocEarned,
+        totalJoulesEarned: gameState.totalJoulesEarned,
         activeSkinIdx: gameState.activeSkinIdx,
         skinsOwned: skins.map(s => s.owned),
         upgradesCounts: upgrades.map(u => u.count)
@@ -647,14 +656,14 @@
 
       const base64Data = btoa(unescape(encodeURIComponent(payload)));
       const encodedData = encodeURIComponent(base64Data);
-      const url = `https://www.dreamlo.com/lb/${DREAMLO_PRIVATE_KEY}/add-json/${safeUser}/${gameState.totalLocEarned}/0/${encodedData}`;
+      const url = `https://www.dreamlo.com/lb/${DREAMLO_PRIVATE_KEY}/add-json/${safeUser}/${gameState.totalJoulesEarned}/0/${encodedData}`;
 
       try {
         await fetch(url, { mode: 'no-cors' });
-        logTerminal(`Progress saved! Leaderboard updated for ${user}.`);
+        logTerminal(`Data saved! Leaderboard updated for ${user}.`);
         setTimeout(fetchDreamloScores, 1200);
       } catch (err) {
-        logTerminal("Failed to reach Dreamlo server.");
+        logTerminal("Failed to reach Cloud server.");
       }
     }
 
@@ -663,21 +672,21 @@
       const pin = document.getElementById('player-pin').value.trim();
 
       if (!user || !pin) {
-        alert("Please enter your Username and PIN to load save data!");
+        alert("Please enter your Researcher Username and Access PIN to load save data!");
         return;
       }
 
-      logTerminal(`Searching cloud save for ${user}...`);
+      logTerminal(`Searching research cloud for ${user}...`);
       const entries = await fetchDreamloScores();
       if (!entries || entries.length === 0) {
-        alert("No save data found!");
+        alert("No research save data found!");
         return;
       }
 
       const existing = entries.find(e => e.name.toLowerCase() === user.toLowerCase());
       if (!existing || !existing.text) {
-        alert("No save data found for this Username!");
-        logTerminal("Cloud save load failed: User not found.");
+        alert("No research save data found for this Username!");
+        logTerminal("Cloud load failed: User record missing.");
         return;
       }
 
@@ -685,16 +694,16 @@
         const decodedText = decodeURIComponent(atob(existing.text));
         const decoded = JSON.parse(decodedText);
         if (decoded.pin !== pin) {
-          alert("ERROR: Incorrect PIN for this account!");
-          logTerminal("Load failed: Incorrect PIN.");
+          alert("ERROR: Incorrect Access PIN for this Researcher ID!");
+          logTerminal("Load failed: Access denied (Invalid PIN).");
           return;
         }
 
-        gameState.loc = decoded.loc || 0;
+        gameState.joules = decoded.joules || decoded.loc || 0;
         gameState.clickPower = decoded.clickPower || 1;
-        gameState.locPerSec = decoded.locPerSec || 0;
+        gameState.joulesPerSec = decoded.joulesPerSec || decoded.locPerSec || 0;
         gameState.rebirths = decoded.rebirths || 0;
-        gameState.totalLocEarned = decoded.totalLocEarned || 0;
+        gameState.totalJoulesEarned = decoded.totalJoulesEarned || decoded.totalLocEarned || 0;
         gameState.activeSkinIdx = decoded.activeSkinIdx || 0;
 
         if (decoded.skinsOwned) {
@@ -710,23 +719,23 @@
           });
         }
 
-        localStorage.setItem('geiger_user', user);
-        localStorage.setItem('geiger_pin', pin);
+        localStorage.setItem('physica_user', user);
+        localStorage.setItem('physica_pin', pin);
 
-        logTerminal(`Welcome back, ${user}! Cloud save loaded.`);
+        logTerminal(`Welcome back, Dr. ${user}! Laboratory data synchronized.`);
         renderFacilities();
         updateSkinVisual();
         updateUI();
       } catch (e) {
-        alert("Failed to parse cloud save file.");
-        logTerminal("Corrupted save data.");
+        alert("Failed to parse scientific cloud data.");
+        logTerminal("Corrupted research save record.");
       }
     }
 
     document.getElementById('btn-save-cloud').addEventListener('click', saveProgressCloud);
     document.getElementById('btn-load-cloud').addEventListener('click', loadProgressCloud);
 
-    logTerminal("System initialized. Enter Username & PIN to sync!");
+    logTerminal("Laboratory system online. Steyer counter active.");
     updateSkinVisual();
     updateUI();
     fetchDreamloScores();
