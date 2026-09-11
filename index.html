@@ -161,9 +161,9 @@
     }
 
     .disclaimer-banner {
-      background: rgba(243, 139, 168, 0.15);
-      border: 1px dashed var(--accent-red);
-      color: var(--accent-red);
+      background: rgba(166, 227, 161, 0.15);
+      border: 1px dashed var(--accent-green);
+      color: var(--accent-green);
       padding: 6px 8px;
       font-size: 0.75rem;
       font-weight: bold;
@@ -304,7 +304,7 @@
 
       <div class="panel-title">-- DREAMLO LEADERBOARD --</div>
       <div class="disclaimer-banner">
-        WARNING: LEADER BOARD IN DEVELOPMENT AND MAY NOT WORK! PLEASE BE PATIENT WHILE WE FIX THIS!
+        LEADERBOARD ACTIVE: Save your progress to post your score!
       </div>
       <div class="scroll-container" id="leaderboard-container">
         <div class="lb-row"><span class="lb-name">Loading leaderboard...</span></div>
@@ -576,13 +576,14 @@
       const url = `https://www.dreamlo.com/lb/${DREAMLO_PUBLIC_KEY}/json`;
       try {
         const response = await fetch(url);
+        if (!response.ok) throw new Error("Network response error");
         const data = await response.json();
         const lbContainer = document.getElementById('leaderboard-container');
         lbContainer.innerHTML = '';
 
-        if (!data.dreamlo.leaderboard || !data.dreamlo.leaderboard.entry) {
+        if (!data || !data.dreamlo || !data.dreamlo.leaderboard || !data.dreamlo.leaderboard.entry) {
           lbContainer.innerHTML = '<div class="lb-row"><span>No scores yet. Be the first!</span></div>';
-          return null;
+          return [];
         }
 
         let entries = data.dreamlo.leaderboard.entry;
@@ -598,7 +599,7 @@
         return entries;
       } catch (err) {
         logTerminal("Error fetching Dreamlo leaderboard.");
-        return null;
+        return [];
       }
     }
 
@@ -617,12 +618,13 @@
       localStorage.setItem('geiger_pin', pin);
 
       const entries = await fetchDreamloScores();
-      if (entries) {
+      if (entries && entries.length > 0) {
         const existing = entries.find(e => e.name.toLowerCase() === user.toLowerCase());
         if (existing && existing.text) {
           try {
-            const parsed = JSON.parse(atob(decodeURIComponent(existing.text)));
-            if (parsed.pin !== pin) {
+            const decodedText = decodeURIComponent(atob(existing.text));
+            const parsed = JSON.parse(decodedText);
+            if (parsed.pin && parsed.pin !== pin) {
               alert("ERROR: This Username is taken by another player with a different PIN!");
               logTerminal("Save failed: Incorrect PIN for existing user.");
               return;
@@ -643,13 +645,14 @@
         upgradesCounts: upgrades.map(u => u.count)
       });
 
-      const encodedData = encodeURIComponent(btoa(payload));
+      const base64Data = btoa(unescape(encodeURIComponent(payload)));
+      const encodedData = encodeURIComponent(base64Data);
       const url = `https://www.dreamlo.com/lb/${DREAMLO_PRIVATE_KEY}/add-json/${safeUser}/${gameState.totalLocEarned}/0/${encodedData}`;
 
       try {
-        await fetch(url);
+        await fetch(url, { mode: 'no-cors' });
         logTerminal(`Progress saved! Leaderboard updated for ${user}.`);
-        fetchDreamloScores();
+        setTimeout(fetchDreamloScores, 1200);
       } catch (err) {
         logTerminal("Failed to reach Dreamlo server.");
       }
@@ -666,7 +669,10 @@
 
       logTerminal(`Searching cloud save for ${user}...`);
       const entries = await fetchDreamloScores();
-      if (!entries) return;
+      if (!entries || entries.length === 0) {
+        alert("No save data found!");
+        return;
+      }
 
       const existing = entries.find(e => e.name.toLowerCase() === user.toLowerCase());
       if (!existing || !existing.text) {
@@ -676,7 +682,8 @@
       }
 
       try {
-        const decoded = JSON.parse(atob(decodeURIComponent(existing.text)));
+        const decodedText = decodeURIComponent(atob(existing.text));
+        const decoded = JSON.parse(decodedText);
         if (decoded.pin !== pin) {
           alert("ERROR: Incorrect PIN for this account!");
           logTerminal("Load failed: Incorrect PIN.");
