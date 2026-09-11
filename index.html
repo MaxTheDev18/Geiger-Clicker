@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Geiger Clicker 1.0 - Cloud Save Edition</title>
+  <style>
+    :root {
+      --bg-base: #1e1e2e;
+      --bg-surface: #181825;
+      --bg-mantle: #11111b;
+      --text-main: #cdd6f4;
+      --accent-green: #a6e3a1;
+      --accent-blue: #89b4fa;
+      --accent-purple: #cba6f7;
+      --accent-red: #f38ba8;
+      --accent-yellow: #f9e2af;
+      --subtext: #a6adc8;
+      --border: #45475a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; }
+    body { background-color: var(--bg-base); color: var(--text-main); padding: 15px; }
+
+    header { text-align: center; margin-bottom: 15px; position: relative; }
+    h1 { color: var(--text-main); margin-bottom: 5px; }
+    .stat-main { font-size: 1.4rem; color: var(--accent-green); font-weight: bold; }
+    .stat-sub { font-size: 0.9rem; color: var(--accent-blue); font-style: italic; }
+
+    .header-btns {
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    /* Clicker Area */
+    #clicker-area {
+      width: 320px;
+      height: 110px;
+      background: var(--bg-surface);
+      border: 2px solid var(--border);
+      margin: 10px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      user-select: none;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    #clicker-btn {
+      width: 240px;
+      height: 80px;
+      background: var(--accent-blue);
+      color: var(--bg-mantle);
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: transform 0.05s ease;
+      text-align: center;
+      padding: 5px;
+    }
+    #clicker-btn img {
+      max-height: 100%;
+      max-width: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+    #clicker-area:active #clicker-btn { transform: scale(0.95); }
+
+    .floating-text {
+      position: absolute;
+      color: var(--accent-green);
+      font-weight: bold;
+      pointer-events: none;
+      animation: floatUp 0.6s ease-out forwards;
+    }
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-30px); }
+    }
+
+    /* Grid Layout */
+    .game-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 15px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .panel {
+      background: var(--bg-surface);
+      border: 2px solid var(--border);
+      padding: 10px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      max-height: 720px;
+    }
+    .panel-title { color: var(--accent-yellow); font-size: 1rem; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+
+    .scroll-container { overflow-y: auto; flex-grow: 1; padding-right: 5px; }
+
+    button.game-btn {
+      width: 100%;
+      background: var(--bg-mantle);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 8px;
+      margin-bottom: 6px;
+      text-align: left;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button.game-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    button.game-btn:hover:not(:disabled) { background: #313244; }
+
+    .inline-btn {
+      width: auto !important;
+      display: inline-block;
+      padding: 5px 12px !important;
+      margin: 0 !important;
+      text-align: center !important;
+    }
+
+    #terminal {
+      background: var(--bg-mantle);
+      color: var(--accent-green);
+      font-size: 0.75rem;
+      height: 100px;
+      overflow-y: auto;
+      padding: 5px;
+      border: 1px solid var(--border);
+      margin-bottom: 10px;
+    }
+
+    .account-inputs {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .account-inputs input {
+      background: var(--bg-mantle);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 6px;
+      border-radius: 4px;
+    }
+
+    .account-actions {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .disclaimer-banner {
+      background: rgba(243, 139, 168, 0.15);
+      border: 1px dashed var(--accent-red);
+      color: var(--accent-red);
+      padding: 6px 8px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      text-align: center;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+
+    .lb-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #313244; font-size: 0.85rem; }
+    .lb-rank { width: 30px; color: var(--accent-purple); font-weight: bold; }
+    .lb-name { flex-grow: 1; color: var(--text-main); }
+    .lb-score { color: var(--accent-green); font-weight: bold; }
+
+    /* Tutorial Modal Overlay */
+    .tutorial-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .tutorial-card {
+      background: var(--bg-surface);
+      border: 2px solid var(--accent-yellow);
+      border-radius: 8px;
+      max-width: 480px;
+      width: 100%;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+
+    .tutorial-card h3 {
+      color: var(--accent-yellow);
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+    }
+
+    .tutorial-card p {
+      font-size: 0.9rem;
+      line-height: 1.4;
+      color: var(--text-main);
+      margin-bottom: 15px;
+    }
+
+    .tut-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 15px;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+
+    .tut-step-indicator {
+      font-size: 0.8rem;
+      color: var(--subtext);
+    }
+
+    @media (max-width: 900px) { .game-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <!-- TUTORIAL MODAL -->
+  <div id="tutorial-overlay" class="tutorial-overlay" style="display: none;">
+    <div class="tutorial-card">
+      <h3 id="tut-title">Welcome to Geiger Clicker!</h3>
+      <p id="tut-desc">Step description goes here...</p>
+      <div class="tut-footer">
+        <span class="tut-step-indicator" id="tut-step-num">Step 1 of 5</span>
+        <div style="display: flex; gap: 6px;">
+          <button id="tut-btn-prev" class="game-btn inline-btn">Back</button>
+          <button id="tut-btn-next" class="game-btn inline-btn" style="background:var(--accent-green); color:var(--bg-mantle); font-weight:bold;">Next</button>
+          <button id="tut-btn-close" class="game-btn inline-btn" style="background:var(--accent-red); color:var(--bg-mantle);">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <header>
+    <h1>Geiger Clicker</h1>
+    <div class="stat-main" id="lbl-loc">Lines of Code: 0</div>
+    <div class="stat-sub" id="lbl-stats">Click Power: 1 | LOC/sec: 0</div>
+    <div id="clicker-area">
+      <div id="clicker-btn">
+        <img id="clicker-img" src="geiger.png" alt="Geiger">
+      </div>
+    </div>
+    <div class="header-btns">
+      <button id="btn-open-tutorial" class="game-btn inline-btn" style="background:var(--accent-purple); color:var(--bg-mantle); font-weight:bold;">📖 How to Play (Tutorial)</button>
+    </div>
+  </header>
+
+  <div class="game-grid">
+    <!-- LEFT PANEL -->
+    <div class="panel">
+      <div class="panel-title">-- BUTTON SKINS & SHOP --</div>
+      <div class="scroll-container">
+        <div id="skins-container"></div>
+        <div class="panel-title" style="margin-top:10px;">-- UPGRADES --</div>
+        <div id="upgrades-container"></div>
+      </div>
+    </div>
+
+    <!-- MIDDLE PANEL -->
+    <div class="panel">
+      <div class="panel-title">-- BUILT FACILITIES & DEVS --</div>
+      <div class="scroll-container" id="facilities-container">
+        <div style="color: var(--subtext); text-align: center; margin-top: 20px;">No facilities built yet.</div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="panel">
+      <div class="panel-title">-- SYSTEM TERMINAL LOG --</div>
+      <div id="terminal"></div>
+
+      <div class="panel-title">-- REBIRTH SYSTEM --</div>
+      <div style="margin-bottom: 10px;">
+        <div id="lbl-rebirth" style="font-size: 0.85rem; color: var(--accent-purple); margin-bottom: 4px;">Rebirths: 0 (1.0x Boost)</div>
+        <button id="btn-rebirth" class="game-btn" style="background: var(--accent-purple); color: var(--bg-mantle); text-align:center; font-weight:bold;">Rebirth</button>
+      </div>
+
+      <div class="panel-title">-- ACCOUNT & CLOUD SAVE --</div>
+      <div class="account-inputs">
+        <input type="text" id="player-name" placeholder="Username (e.g. Alex)" maxlength="12">
+        <input type="password" id="player-pin" placeholder="Secret PIN (e.g. 1234)" maxlength="8">
+      </div>
+      <div class="account-actions">
+        <button id="btn-save-cloud" class="game-btn" style="background:var(--accent-green); color:var(--bg-mantle); font-weight:bold; text-align:center; margin:0;">Save Progress</button>
+        <button id="btn-load-cloud" class="game-btn" style="background:var(--accent-blue); color:var(--bg-mantle); font-weight:bold; text-align:center; margin:0;">Load Progress</button>
+      </div>
+
+      <div class="panel-title">-- DREAMLO LEADERBOARD --</div>
+      <div class="disclaimer-banner">
+        WARNING: LEADER BOARD IN DEVELOPMENT AND MAY NOT WORK! PLEASE BE PATIENT WHILE WE FIX THIS!
+      </div>
+      <div class="scroll-container" id="leaderboard-container">
+        <div class="lb-row"><span class="lb-name">Loading leaderboard...</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DREAMLO_PUBLIC_KEY = "6aa2cae78f40bb15a86e7234";
+    const DREAMLO_PRIVATE_KEY = "iRkhqJbpbkS5hYjUflu15QjJ5ZVfaIHka--OpQRIq2Fg";
+
+    let gameState = {
+      loc: 0,
+      clickPower: 1,
+      locPerSec: 0,
+      rebirths: 0,
+      totalLocEarned: 0,
+      totalClicks: 0,
+      activeSkinIdx: 0
+    };
+
+    document.getElementById('player-name').value = localStorage.getItem('geiger_user') || '';
+    document.getElementById('player-pin').value = localStorage.getItem('geiger_pin') || '';
+
+    const skins = [
+      { name: "Default Geiger", img: "geiger.png", cost: 0, mult: 1, color: "#89b4fa", owned: true },
+      { name: "Sad Geiger", img: "SADGEIGER.png", cost: 5000, mult: 2, color: "#74c7ec", owned: false },
+      { name: "Angy Geiger", img: "ANGYGEIGER.png", cost: 250000, mult: 5, color: "#f38ba8", owned: false },
+      { name: "Juandice Geiger", img: "JuandiceGeiger.png", cost: 10000000, mult: 15, color: "#f9e2af", owned: false },
+      { name: "Green Geiger", img: "GreenGeiger.png", cost: 500000000, mult: 50, color: "#a6e3a1", owned: false }
+    ];
+
+    const upgradeList = [
+      ["Ergonomic Mouse", 15, "click", 1],
+      ["Mechanical Keyboard", 50, "click", 3],
+      ["Hire Junior Dev", 100, "auto", 1],
+      ["Coffee Machine", 250, "click", 8],
+      ["Dual Monitors", 500, "auto", 5],
+      ["Hire Mid-Level Dev", 2500, "auto", 15],
+      ["Standing Desk", 10000, "auto", 40],
+      ["Hire Senior Dev", 40000, "auto", 100],
+      ["Git Automation Bot", 120000, "auto", 250],
+      ["Cloud Server Cluster", 800000, "auto", 1200],
+      ["AI Copilot Sub", 2000000, "auto", 2500]
+    ];
+
+    let upgrades = upgradeList.map(([name, cost, type, power]) => ({
+      name, cost, baseCost: cost, type, power, count: 0
+    }));
+
+    // --- GUIDED TUTORIAL STEPS ---
+    const tutorialSteps = [
+      {
+        title: "1. Click the Geiger Button!",
+        desc: "Click the Geiger image button at the top of the page to start generating Lines of Code (LOC). The more you click, the more currency you earn!"
+      },
+      {
+        title: "2. Upgrades & Passive Income",
+        desc: "Use your earned LOC in the left panel to buy Upgrades. Items like 'Ergonomic Mouse' boost your click power, while 'Junior Devs' generate LOC automatically per second!"
+      },
+      {
+        title: "3. Unlock New Geiger Skins",
+        desc: "Save up LOC to unlock cool skins like Sad Geiger, Angy Geiger, Juandice Geiger, and Green Geiger! Higher tier skins multiply all of your click earnings."
+      },
+      {
+        title: "4. Cloud Save & Leaderboard",
+        desc: "Type in a Username and a Secret PIN in the right panel, then hit 'Save Progress'. This safely locks your progress to your account on the online leaderboard!"
+      },
+      {
+        title: "5. Perform Rebirths",
+        desc: "Once you accumulate enough lifetime LOC, hit 'Rebirth' to reset your progress in exchange for a massive permanent production multiplier boost!"
+      }
+    ];
+
+    let currentTutStep = 0;
+
+    function renderTutorialStep() {
+      const step = tutorialSteps[currentTutStep];
+      document.getElementById('tut-title').innerText = step.title;
+      document.getElementById('tut-desc').innerText = step.desc;
+      document.getElementById('tut-step-num').innerText = `Step ${currentTutStep + 1} of ${tutorialSteps.length}`;
+      document.getElementById('tut-btn-prev').style.display = currentTutStep === 0 ? 'none' : 'inline-block';
+      document.getElementById('tut-btn-next').innerText = currentTutStep === tutorialSteps.length - 1 ? 'Finish' : 'Next';
+    }
+
+    function openTutorial() {
+      currentTutStep = 0;
+      renderTutorialStep();
+      document.getElementById('tutorial-overlay').style.display = 'flex';
+    }
+
+    function closeTutorial() {
+      document.getElementById('tutorial-overlay').style.display = 'none';
+      localStorage.setItem('geiger_tut_done', 'true');
+    }
+
+    document.getElementById('tut-btn-next').addEventListener('click', () => {
+      if (currentTutStep < tutorialSteps.length - 1) {
+        currentTutStep++;
+        renderTutorialStep();
+      } else {
+        closeTutorial();
+      }
+    });
+
+    document.getElementById('tut-btn-prev').addEventListener('click', () => {
+      if (currentTutStep > 0) {
+        currentTutStep--;
+        renderTutorialStep();
+      }
+    });
+
+    document.getElementById('tut-btn-close').addEventListener('click', closeTutorial);
+    document.getElementById('btn-open-tutorial').addEventListener('click', openTutorial);
+
+    // Auto-open tutorial on first visit
+    if (!localStorage.getItem('geiger_tut_done')) {
+      openTutorial();
+    }
+
+    function getRebirthCost() { return 1000000000 * Math.pow(10, gameState.rebirths); }
+    function getRebirthMultiplier() { return 1.0 + (gameState.rebirths * 1.5); }
+    function getEffectiveClickPower() { return Math.floor(gameState.clickPower * skins[gameState.activeSkinIdx].mult * getRebirthMultiplier()); }
+
+    function logTerminal(msg) {
+      const term = document.getElementById('terminal');
+      const time = new Date().toLocaleTimeString();
+      term.innerHTML += `<div>[${time}] ${msg}</div>`;
+      term.scrollTop = term.scrollHeight;
+    }
+
+    function updateUI() {
+      const effectiveLps = Math.floor(gameState.locPerSec * getRebirthMultiplier());
+      document.getElementById('lbl-loc').innerText = `Lines of Code: ${gameState.loc.toLocaleString()}`;
+      document.getElementById('lbl-stats').innerText = `Click Power: ${getEffectiveClickPower().toLocaleString()} | LOC/sec: ${effectiveLps.toLocaleString()}`;
+
+      const skinsContainer = document.getElementById('skins-container');
+      skinsContainer.innerHTML = '';
+      skins.forEach((skin, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'game-btn';
+        if (skin.owned) {
+          const isEquipped = gameState.activeSkinIdx === idx;
+          btn.innerText = `${skin.name} (${skin.mult}x) [${isEquipped ? 'EQUIPPED' : 'EQUIP'}]`;
+          btn.disabled = isEquipped;
+          btn.onclick = () => { gameState.activeSkinIdx = idx; updateSkinVisual(); updateUI(); };
+        } else {
+          btn.innerText = `${skin.name} (${skin.mult}x)\nCost: ${skin.cost.toLocaleString()} LOC`;
+          btn.disabled = gameState.loc < skin.cost;
+          btn.onclick = () => {
+            if (gameState.loc >= skin.cost) {
+              gameState.loc -= skin.cost;
+              skin.owned = true;
+              gameState.activeSkinIdx = idx;
+              logTerminal(`Unlocked ${skin.name}`);
+              updateSkinVisual();
+              updateUI();
+            }
+          };
+        }
+        skinsContainer.appendChild(btn);
+      });
+
+      const upgContainer = document.getElementById('upgrades-container');
+      upgContainer.innerHTML = '';
+      upgrades.forEach((item) => {
+        const btn = document.createElement('button');
+        btn.className = 'game-btn';
+        const effPower = Math.floor(item.power * getRebirthMultiplier());
+        const effectStr = item.type === 'click' ? `+${effPower.toLocaleString()} click` : `+${effPower.toLocaleString()}/sec`;
+        btn.innerText = `${item.name} (${effectStr})\nCost: ${item.cost.toLocaleString()} | Owned: ${item.count}`;
+        btn.disabled = gameState.loc < item.cost;
+        btn.onclick = () => {
+          if (gameState.loc >= item.cost) {
+            gameState.loc -= item.cost;
+            item.count++;
+            if (item.type === 'click') gameState.clickPower += item.power;
+            else gameState.locPerSec += item.power;
+            item.cost = Math.floor(item.cost * 1.45);
+            logTerminal(`Purchased: ${item.name}`);
+            renderFacilities();
+            updateUI();
+          }
+        };
+        upgContainer.appendChild(btn);
+      });
+
+      const rCost = getRebirthCost();
+      const canRebirth = gameState.totalLocEarned >= rCost;
+      document.getElementById('lbl-rebirth').innerText = `Rebirths: ${gameState.rebirths} (${getRebirthMultiplier().toFixed(1)}x Boost)`;
+      const rBtn = document.getElementById('btn-rebirth');
+      rBtn.innerText = `Rebirth\nCost: ${rCost.toLocaleString()} Lifetime LOC`;
+      rBtn.disabled = !canRebirth;
+    }
+
+    function updateSkinVisual() {
+      const activeSkin = skins[gameState.activeSkinIdx];
+      const clickerBtn = document.getElementById('clicker-btn');
+      const clickerImg = document.getElementById('clicker-img');
+      clickerBtn.style.background = activeSkin.color;
+      clickerImg.src = activeSkin.img;
+      clickerImg.alt = activeSkin.name;
+    }
+
+    function renderFacilities() {
+      const container = document.getElementById('facilities-container');
+      container.innerHTML = '';
+      let hasBuilding = false;
+      upgrades.forEach(item => {
+        if (item.count > 0) {
+          hasBuilding = true;
+          const div = document.createElement('div');
+          div.style.cssText = "background:var(--bg-mantle); padding:6px; border:1px solid var(--border); margin-bottom:5px; border-radius:4px;";
+          div.innerHTML = `<strong>${item.name}</strong> (x${item.count})`;
+          container.appendChild(div);
+        }
+      });
+      if (!hasBuilding) container.innerHTML = '<div style="color: var(--subtext); text-align: center; margin-top: 20px;">No facilities built yet.</div>';
+    }
+
+    const clickerArea = document.getElementById('clicker-area');
+    clickerArea.addEventListener('click', (e) => {
+      const earned = getEffectiveClickPower();
+      gameState.loc += earned;
+      gameState.totalLocEarned += earned;
+      gameState.totalClicks++;
+
+      const rect = clickerArea.getBoundingClientRect();
+      const floatTxt = document.createElement('div');
+      floatTxt.className = 'floating-text';
+      floatTxt.innerText = `+${earned.toLocaleString()}`;
+      floatTxt.style.left = `${e.clientX - rect.left}px`;
+      floatTxt.style.top = `${e.clientY - rect.top}px`;
+      clickerArea.appendChild(floatTxt);
+      setTimeout(() => floatTxt.remove(), 600);
+
+      updateUI();
+    });
+
+    document.getElementById('btn-rebirth').addEventListener('click', () => {
+      if (gameState.totalLocEarned >= getRebirthCost()) {
+        if (confirm("Perform Rebirth? Reset LOC and upgrades for permanent production boost!")) {
+          gameState.rebirths++;
+          gameState.loc = 0;
+          gameState.clickPower = 1;
+          gameState.locPerSec = 0;
+          gameState.activeSkinIdx = 0;
+          skins.forEach((s, idx) => s.owned = idx === 0);
+          upgrades.forEach(u => { u.count = 0; u.cost = u.baseCost; });
+          logTerminal(`REBIRTH PERFORMED! New multiplier: ${getRebirthMultiplier().toFixed(1)}x`);
+          renderFacilities();
+          updateSkinVisual();
+          updateUI();
+        }
+      }
+    });
+
+    setInterval(() => {
+      if (gameState.locPerSec > 0) {
+        const passive = Math.floor(gameState.locPerSec * getRebirthMultiplier());
+        gameState.loc += passive;
+        gameState.totalLocEarned += passive;
+        updateUI();
+      }
+    }, 1000);
+
+    // --- DREAMLO LEADERBOARD & CLOUD SAVE SYSTEM ---
+    async function fetchDreamloScores() {
+      const url = `https://www.dreamlo.com/lb/${DREAMLO_PUBLIC_KEY}/json`;
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        const lbContainer = document.getElementById('leaderboard-container');
+        lbContainer.innerHTML = '';
+
+        if (!data.dreamlo.leaderboard || !data.dreamlo.leaderboard.entry) {
+          lbContainer.innerHTML = '<div class="lb-row"><span>No scores yet. Be the first!</span></div>';
+          return null;
+        }
+
+        let entries = data.dreamlo.leaderboard.entry;
+        if (!Array.isArray(entries)) entries = [entries];
+
+        entries.forEach((entry, idx) => {
+          const row = document.createElement('div');
+          row.className = 'lb-row';
+          row.innerHTML = `<span class="lb-rank">#${idx + 1}</span><span class="lb-name">${entry.name}</span><span class="lb-score">${parseInt(entry.score).toLocaleString()} LOC</span>`;
+          lbContainer.appendChild(row);
+        });
+
+        return entries;
+      } catch (err) {
+        logTerminal("Error fetching Dreamlo leaderboard.");
+        return null;
+      }
+    }
+
+    async function saveProgressCloud() {
+      const user = document.getElementById('player-name').value.trim();
+      const pin = document.getElementById('player-pin').value.trim();
+
+      if (!user || !pin) {
+        alert("Please enter both a Username and a Secret PIN to save!");
+        return;
+      }
+
+      const safeUser = encodeURIComponent(user.replace(/[^a-zA-Z0-9_-]/g, ''));
+      
+      localStorage.setItem('geiger_user', user);
+      localStorage.setItem('geiger_pin', pin);
+
+      const entries = await fetchDreamloScores();
+      if (entries) {
+        const existing = entries.find(e => e.name.toLowerCase() === user.toLowerCase());
+        if (existing && existing.text) {
+          try {
+            const parsed = JSON.parse(atob(decodeURIComponent(existing.text)));
+            if (parsed.pin !== pin) {
+              alert("ERROR: This Username is taken by another player with a different PIN!");
+              logTerminal("Save failed: Incorrect PIN for existing user.");
+              return;
+            }
+          } catch(e){}
+        }
+      }
+
+      const payload = JSON.stringify({
+        pin: pin,
+        loc: gameState.loc,
+        clickPower: gameState.clickPower,
+        locPerSec: gameState.locPerSec,
+        rebirths: gameState.rebirths,
+        totalLocEarned: gameState.totalLocEarned,
+        activeSkinIdx: gameState.activeSkinIdx,
+        skinsOwned: skins.map(s => s.owned),
+        upgradesCounts: upgrades.map(u => u.count)
+      });
+
+      const encodedData = encodeURIComponent(btoa(payload));
+      const url = `https://www.dreamlo.com/lb/${DREAMLO_PRIVATE_KEY}/add-json/${safeUser}/${gameState.totalLocEarned}/0/${encodedData}`;
+
+      try {
+        await fetch(url);
+        logTerminal(`Progress saved! Leaderboard updated for ${user}.`);
+        fetchDreamloScores();
+      } catch (err) {
+        logTerminal("Failed to reach Dreamlo server.");
+      }
+    }
+
+    async function loadProgressCloud() {
+      const user = document.getElementById('player-name').value.trim();
+      const pin = document.getElementById('player-pin').value.trim();
+
+      if (!user || !pin) {
+        alert("Please enter your Username and PIN to load save data!");
+        return;
+      }
+
+      logTerminal(`Searching cloud save for ${user}...`);
+      const entries = await fetchDreamloScores();
+      if (!entries) return;
+
+      const existing = entries.find(e => e.name.toLowerCase() === user.toLowerCase());
+      if (!existing || !existing.text) {
+        alert("No save data found for this Username!");
+        logTerminal("Cloud save load failed: User not found.");
+        return;
+      }
+
+      try {
+        const decoded = JSON.parse(atob(decodeURIComponent(existing.text)));
+        if (decoded.pin !== pin) {
+          alert("ERROR: Incorrect PIN for this account!");
+          logTerminal("Load failed: Incorrect PIN.");
+          return;
+        }
+
+        gameState.loc = decoded.loc || 0;
+        gameState.clickPower = decoded.clickPower || 1;
+        gameState.locPerSec = decoded.locPerSec || 0;
+        gameState.rebirths = decoded.rebirths || 0;
+        gameState.totalLocEarned = decoded.totalLocEarned || 0;
+        gameState.activeSkinIdx = decoded.activeSkinIdx || 0;
+
+        if (decoded.skinsOwned) {
+          decoded.skinsOwned.forEach((owned, idx) => { if (skins[idx]) skins[idx].owned = owned; });
+        }
+
+        if (decoded.upgradesCounts) {
+          decoded.upgradesCounts.forEach((count, idx) => {
+            if (upgrades[idx]) {
+              upgrades[idx].count = count;
+              upgrades[idx].cost = Math.floor(upgrades[idx].baseCost * Math.pow(1.45, count));
+            }
+          });
+        }
+
+        localStorage.setItem('geiger_user', user);
+        localStorage.setItem('geiger_pin', pin);
+
+        logTerminal(`Welcome back, ${user}! Cloud save loaded.`);
+        renderFacilities();
+        updateSkinVisual();
+        updateUI();
+      } catch (e) {
+        alert("Failed to parse cloud save file.");
+        logTerminal("Corrupted save data.");
+      }
+    }
+
+    document.getElementById('btn-save-cloud').addEventListener('click', saveProgressCloud);
+    document.getElementById('btn-load-cloud').addEventListener('click', loadProgressCloud);
+
+    logTerminal("System initialized. Enter Username & PIN to sync!");
+    updateSkinVisual();
+    updateUI();
+    fetchDreamloScores();
+    setInterval(fetchDreamloScores, 15000);
+  </script>
+</body>
+</html>
